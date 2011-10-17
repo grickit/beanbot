@@ -3,6 +3,7 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
+import java.lang.Process;
 
 public class beanbot {
 
@@ -14,7 +15,7 @@ public class beanbot {
   private static Hashtable<String,String> variables = new Hashtable<String,String>();
   private static Hashtable<String,String> persistent = new Hashtable<String,String>();
 
-  private static Hashtable<String,Integer> pidpipes = new Hashtable<String,Integer>();
+  private static Hashtable<String,Process> processes = new Hashtable<String,Process>();
   private static Hashtable<String,ByteBuffer> readpipes = new Hashtable<String,ByteBuffer>();
   private static Hashtable<String,ByteBuffer> writepipes = new Hashtable<String,ByteBuffer>();
 
