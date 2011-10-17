@@ -40,24 +40,24 @@ public class beanbot {
   }
 
 
-  public static void error_output(String message) {
+  public static void error_output(String message) { // For errors. Always logged. Always output.
     log_output("BOTERROR",message);
     stdout_output("BOTERROR",message);
   }
 
-  public static void event_output(String message) {
+  public static void event_output(String message) { // For important events. Always logged. Always output.
     log_output("BOTEVENT",message);
     stdout_output("BOTEVENT",message);
   }
 
-  public static void normal_output(String prefix, String message) {
+  public static void normal_output(String prefix, String message) { // For general logging. Always logged. Output if verbose.
     log_output(prefix,message);
     if(core.get("verbose") == "1") {
       stdout_output(prefix,message);
     }
   }
 
-  public static void debug_output(String message) {
+  public static void debug_output(String message) { // For deep debug logging. Logged if debug. Output if debug and verbose.
     if(core.get("debug") == "1") {
       log_output("BOTDEBUG",message);
       if(core.get("verbose") == "1") {
