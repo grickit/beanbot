@@ -72,7 +72,7 @@ public class beanbot {
   }
 
   public static void run_command(String pipeid, String command) throws IOException {
-    if(check_pipe_exists(pipeid) == true) {
+    if(check_pipe_exists(pipeid) == false) {
       Process new_process = run_time.exec(command);
       processes.put(pipeid, new_process);
       readpipes.put(pipeid, new_process.getInputStream());
@@ -80,6 +80,18 @@ public class beanbot {
     }
     else {
       System.out.println("Tried to start a pipe named " + pipeid + " but an existing pipe has that name.");
+    }
+  }
+
+  public static void kill_pipe(String pipeid) {
+    if(check_pipe_exists(pipeid) == true) {
+      processes.get(pipeid).destroy();
+      processes.remove(pipeid);
+      readpipes.remove(pipeid);
+      writepipes.remove(pipeid);
+    }
+    else {
+      System.out.println("Tried to kill a pipe named " + pipeid + " but no pipe exists with that name.");
     }
   }
 
