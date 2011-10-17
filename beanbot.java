@@ -28,36 +28,41 @@ public class beanbot {
 //-----//-----//-----// IO Methods //-----//-----//-----//
   public static String generate_timestamp() {
     Calendar calendar = Calendar.getInstance();
-    return "" + calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE)  + ":" + calendar.get(Calendar.SECOND) ;
+    return "" + calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE)  + ":" + calendar.get(Calendar.SECOND);
   }
 
-  public static void log_output (String prefix, String message) {
+  public static void log_output(String prefix, String message) {
     // TODO print logs
   }
 
-  public static void stdout_output (String prefix, String message) {
+  public static void stdout_output(String prefix, String message) {
     System.out.println(prefix + " " + generate_timestamp() + " " + message);
   }
 
 
+  public static void error_output(String message) {
+    log_output("BOTERROR",message);
+    stdout_output("BOTERROR",message);
+  }
+
+  public static void event_output(String message) {
+    log_output("BOTEVENT",message);
+    stdout_output("BOTEVENT",message);
+  }
+
 
 //-----//-----//-----// Connection Methods //-----//-----//-----//
   public static SocketChannel createConnection(String server, int port) throws IOException, InterruptedException {
-    System.out.print("Attempting to connect.");
+    event_output("Attempting to connect.");
     SocketChannel socketConnection = SocketChannel.open();
     socketConnection.configureBlocking(false);
     socketConnection.connect(new InetSocketAddress(server, port));
-    while(!socketConnection.finishConnect()) {
-      System.out.print(".");
-      System.out.flush();
-      sleep(500);
-    }
-    System.out.print("\n");
+    while(!socketConnection.finishConnect()) { sleep(100); }
     return socketConnection;
   }
 
   public static void login() throws IOException {
-    System.out.println("Attempting to log in.");
+    event_output("Attempting to log in.");
     sendServerMessage("NICK Gambeanbot\n");
     sendServerMessage("USER Gambot 8 * :Java Gambot\n");
     sendServerMessage("JOIN ##Gambot\n");
@@ -72,14 +77,15 @@ public class beanbot {
 
 
 //-----//-----//-----// API Methods //-----//-----//-----//
-  public static void sleep(int millis) throws InterruptedException {
+  public static boolean sleep(int millis) throws InterruptedException {
     try {
       Thread.sleep(millis);
     }
     catch (InterruptedException e) {
-      System.out.println("Interrupted");
+      error_output("Interrupted during sleep. Shutting down.");
       System.exit(0);
     }
+    return true;
   }
 
   public static void sendServerMessage(String message) throws IOException {
@@ -103,7 +109,7 @@ public class beanbot {
       writepipes.remove(pipeid);
     }
     else {
-      System.out.println("Tried to kill a pipe named " + pipeid + " but no pipe exists with that name.");
+      error_output("Tried to kill a pipe named " + pipeid + " but no pipe exists with that name.");
     }
   }
 
@@ -115,7 +121,7 @@ public class beanbot {
       writepipes.put(pipeid, new_process.getOutputStream());
     }
     else {
-      System.out.println("Tried to start a pipe named " + pipeid + " but an existing pipe has that name.");
+      error_output("Tried to start a pipe named " + pipeid + " but an existing pipe has that name.");
     }
   }
 
@@ -132,13 +138,12 @@ public class beanbot {
     serverConnection = createConnection("chat.freenode.net",6667);
     login();
 
-    while(true) {
-      sleep(100);
+    while(sleep(10)) {
       fromServer.clear();
       int numberBytesRead = serverConnection.read(fromServer);
 
       if (numberBytesRead == -1) {
-	System.out.println("IRC connection died.");
+	error_output("IRC connection died. Reconnecting.");
 	reconnect();
       }
       else {
