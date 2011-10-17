@@ -63,6 +63,12 @@ public class beanbot {
     sendServerMessage("JOIN ##Gambot\n");
   }
 
+  public static void reconnect() throws IOException, InterruptedException {
+    serverConnection = createConnection("chat.freenode.net",6667);
+    login();
+    core.put("message_count","0");
+  }
+
   public static void main(String[] args) throws IOException, InterruptedException {
     core.put("home_directory",new java.io.File("").getAbsolutePath());
     core.put("configuration_file","config.txt");
@@ -78,8 +84,7 @@ public class beanbot {
 
       if (numberBytesRead == -1) {
 	System.out.println("IRC connection died.");
-	serverConnection = createConnection("chat.freenode.net",6667);
-	login();
+	reconnect();
       }
       else {
 	String incoming = "";
