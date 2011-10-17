@@ -14,11 +14,7 @@ public class beanbot {
     toServer = ByteBuffer.allocateDirect(1024);
     fromServer = ByteBuffer.allocateDirect(1024);
     serverConnection = createConnection("chat.freenode.net",6667);
-
-    System.out.println("Logging in.");
-    sendServerMessage("NICK Gambeanbot\n");
-    sendServerMessage("USER Gambot 8 * :Java Gambot\n");
-    sendServerMessage("JOIN ##Gambot\n");
+    login();
 
     while(true) {
       sleep(100);
@@ -28,6 +24,7 @@ public class beanbot {
       if (numberBytesRead == -1) {
 	System.out.println("IRC connection died.");
 	serverConnection = createConnection("chat.freenode.net",6667);
+	login();
       }
       else {
 	String incoming = "";
@@ -76,5 +73,12 @@ public class beanbot {
       serverConnection.write(toServer);
     }
     toServer.clear();
+  }
+
+  public static void login() throws IOException {
+    System.out.println("Logging in.");
+    sendServerMessage("NICK Gambeanbot\n");
+    sendServerMessage("USER Gambot 8 * :Java Gambot\n");
+    sendServerMessage("JOIN ##Gambot\n");
   }
 }
