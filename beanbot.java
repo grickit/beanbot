@@ -54,21 +54,20 @@ public class beanbot {
     toServer.clear();
   }
 
-  public static void login() throws IOException {
-    System.out.println("Attempting to log in.");
-    sendServerMessage("NICK Gambeanbot\n");
-    sendServerMessage("USER Gambot 8 * :Java Gambot\n");
-    sendServerMessage("JOIN ##Gambot\n");
-  }
-
-  public static void reconnect() throws IOException, InterruptedException {
-    serverConnection = createConnection("chat.freenode.net",6667);
-    login();
-    core.put("message_count","0");
-  }
-
   public static boolean check_pipe_exists(String pipeid) {
     return processes.containsKey(pipeid);
+  }
+
+  public static void kill_pipe(String pipeid) {
+    if(check_pipe_exists(pipeid) == true) {
+      processes.get(pipeid).destroy();
+      processes.remove(pipeid);
+      readpipes.remove(pipeid);
+      writepipes.remove(pipeid);
+    }
+    else {
+      System.out.println("Tried to kill a pipe named " + pipeid + " but no pipe exists with that name.");
+    }
   }
 
   public static void run_command(String pipeid, String command) throws IOException {
@@ -83,16 +82,17 @@ public class beanbot {
     }
   }
 
-  public static void kill_pipe(String pipeid) {
-    if(check_pipe_exists(pipeid) == true) {
-      processes.get(pipeid).destroy();
-      processes.remove(pipeid);
-      readpipes.remove(pipeid);
-      writepipes.remove(pipeid);
-    }
-    else {
-      System.out.println("Tried to kill a pipe named " + pipeid + " but no pipe exists with that name.");
-    }
+  public static void login() throws IOException {
+    System.out.println("Attempting to log in.");
+    sendServerMessage("NICK Gambeanbot\n");
+    sendServerMessage("USER Gambot 8 * :Java Gambot\n");
+    sendServerMessage("JOIN ##Gambot\n");
+  }
+
+  public static void reconnect() throws IOException, InterruptedException {
+    serverConnection = createConnection("chat.freenode.net",6667);
+    login();
+    core.put("message_count","0");
   }
 
   public static void main(String[] args) throws IOException, InterruptedException {
