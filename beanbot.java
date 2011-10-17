@@ -67,6 +67,7 @@ public class beanbot {
   }
 
 
+
 //-----//-----//-----// Connection Methods //-----//-----//-----//
   public static SocketChannel createConnection(String server, int port) throws IOException, InterruptedException {
     event_output("Attempting to connect.");
@@ -79,9 +80,9 @@ public class beanbot {
 
   public static void login() throws IOException {
     event_output("Attempting to log in.");
-    sendServerMessage("NICK Gambeanbot\n");
-    sendServerMessage("USER Gambot 8 * :Java Gambot\n");
-    sendServerMessage("JOIN ##Gambot\n");
+    send_server_message("NICK Gambeanbot\n");
+    send_server_message("USER Gambot 8 * :Java Gambot\n");
+    send_server_message("JOIN ##Gambot\n");
   }
 
   public static void reconnect() throws IOException, InterruptedException {
@@ -105,7 +106,7 @@ public class beanbot {
     return true;
   }
 
-  public static void sendServerMessage(String message) throws IOException {
+  public static void send_server_message(String message) throws IOException {
     toServer.put(message.getBytes());
     toServer.flip();
     while(toServer.hasRemaining()) {
