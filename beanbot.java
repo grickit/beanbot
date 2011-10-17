@@ -3,9 +3,11 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
-import java.lang.Process;
+import java.lang.*;
 
 public class beanbot {
+
+  private static Runtime run_time = Runtime.getRuntime();
 
   private static SocketChannel serverConnection;
   private static ByteBuffer toServer = ByteBuffer.allocateDirect(1024);
@@ -16,12 +18,8 @@ public class beanbot {
   private static Hashtable<String,String> persistent = new Hashtable<String,String>();
 
   private static Hashtable<String,Process> processes = new Hashtable<String,Process>();
-  private static Hashtable<String,ByteBuffer> readpipes = new Hashtable<String,ByteBuffer>();
-  private static Hashtable<String,ByteBuffer> writepipes = new Hashtable<String,ByteBuffer>();
-
-  private static String[] pending_outgoing;
-  private Date last_second = new Date();
-  private int messages_this_second = 0;
+  private static Hashtable<String,InputStream> readpipes = new Hashtable<String,InputStream>();
+  private static Hashtable<String,OutputStream> writepipes = new Hashtable<String,OutputStream>();
 
   public static void sleep(int millis) throws InterruptedException {
     try {
@@ -67,6 +65,22 @@ public class beanbot {
     serverConnection = createConnection("chat.freenode.net",6667);
     login();
     core.put("message_count","0");
+  }
+
+  public static boolean check_pipe_exists(String pipeid) {
+    return processes.containsKey(pipeid);
+  }
+
+  public static void run_command(String pipeid, String command) throws IOException {
+    if(check_pipe_exists(pipeid) == true) {
+      Process new_process = run_time.exec(command);
+      processes.put(pipeid, new_process);
+      readpipes.put(pipeid, new_process.getInputStream());
+      writepipes.put(pipeid, new_process.getOutputStream());
+    }
+    else {
+      System.out.println("Tried to start a pipe named " + pipeid + " but an existing pipe has that name.");
+    }
   }
 
   public static void main(String[] args) throws IOException, InterruptedException {
