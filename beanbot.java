@@ -4,13 +4,21 @@ import java.nio.*;
 import java.nio.channels.*;
 
 public class beanbot {
+
+  private static SocketChannel serverConnection;
+  private static ByteBuffer toServer;
+  private static ByteBuffer fromServer;
+
   public static void main(String[] args) throws IOException, InterruptedException {
-    SocketChannel serverConnection = createConnection("chat.freenode.net",6667);
-    ByteBuffer toServer = ByteBuffer.allocateDirect(1024);
-    ByteBuffer fromServer = ByteBuffer.allocateDirect(1024);
+
+    toServer = ByteBuffer.allocateDirect(1024);
+    fromServer = ByteBuffer.allocateDirect(1024);
+    serverConnection = createConnection("chat.freenode.net",6667);
 
     System.out.println("Logging in.");
-    //TODO: Login
+    sendServerMessage("NICK Gambeanbot\n");
+    sendServerMessage("USER Gambot 8 * :Java Gambot\n");
+    sendServerMessage("JOIN ##Gambot\n");
 
     while(true) {
       sleep(100);
@@ -38,7 +46,13 @@ public class beanbot {
   }
 
   public static void sleep(int millis) throws InterruptedException {
-    Thread.sleep(millis);
+    try {
+      Thread.sleep(millis);
+    }
+    catch (InterruptedException e) {
+      System.out.println("Interrupted");
+      System.exit(0);
+    }
   }
 
   public static SocketChannel createConnection(String server, int port) throws IOException, InterruptedException {
@@ -53,5 +67,14 @@ public class beanbot {
     }
     System.out.print("\n");
     return socketConnection;
+  }
+
+  public static void sendServerMessage(String message) throws IOException {
+    toServer.put(message.getBytes());
+    toServer.flip();
+    while(toServer.hasRemaining()) {
+      serverConnection.write(toServer);
+    }
+    toServer.clear();
   }
 }
