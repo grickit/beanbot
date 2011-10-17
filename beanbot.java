@@ -50,6 +50,22 @@ public class beanbot {
     stdout_output("BOTEVENT",message);
   }
 
+  public static void normal_output(String prefix, String message) {
+    log_output(prefix,message);
+    if(core.get("verbose") == "1") {
+      stdout_output(prefix,message);
+    }
+  }
+
+  public static void debug_output(String message) {
+    if(core.get("debug") == "1") {
+      log_output("BOTDEBUG",message);
+      if(core.get("verbose") == "1") {
+	stdout_output("BOTDEBUG",message);
+      }
+    }
+  }
+
 
 //-----//-----//-----// Connection Methods //-----//-----//-----//
   public static SocketChannel createConnection(String server, int port) throws IOException, InterruptedException {
@@ -156,7 +172,7 @@ public class beanbot {
 	  String s = new String(bytes,"UTF-8");
 	  incoming = incoming + s;
 	  //TODO: Handle incoming message
-	  System.out.println("INCOMING " + incoming);
+	  normal_output("INCOMING",incoming);
 	}
       }
     }
