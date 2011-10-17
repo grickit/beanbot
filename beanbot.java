@@ -7,6 +7,8 @@ import java.lang.*;
 
 public class beanbot {
 
+
+//-----//-----//-----// Setup //-----//-----//-----//
   private static Runtime run_time = Runtime.getRuntime();
 
   private static SocketChannel serverConnection;
@@ -21,16 +23,25 @@ public class beanbot {
   private static Hashtable<String,InputStream> readpipes = new Hashtable<String,InputStream>();
   private static Hashtable<String,OutputStream> writepipes = new Hashtable<String,OutputStream>();
 
-  public static void sleep(int millis) throws InterruptedException {
-    try {
-      Thread.sleep(millis);
-    }
-    catch (InterruptedException e) {
-      System.out.println("Interrupted");
-      System.exit(0);
-    }
+
+
+//-----//-----//-----// IO Methods //-----//-----//-----//
+  public static String generate_timestamp() {
+    Calendar calendar = Calendar.getInstance();
+    return "" + calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE)  + ":" + calendar.get(Calendar.SECOND) ;
   }
 
+  public static void log_output (String prefix, String message) {
+    // TODO print logs
+  }
+
+  public static void stdout_output (String prefix, String message) {
+    System.out.println(prefix + " " + generate_timestamp() + " " + message);
+  }
+
+
+
+//-----//-----//-----// Connection Methods //-----//-----//-----//
   public static SocketChannel createConnection(String server, int port) throws IOException, InterruptedException {
     System.out.print("Attempting to connect.");
     SocketChannel socketConnection = SocketChannel.open();
@@ -43,6 +54,32 @@ public class beanbot {
     }
     System.out.print("\n");
     return socketConnection;
+  }
+
+  public static void login() throws IOException {
+    System.out.println("Attempting to log in.");
+    sendServerMessage("NICK Gambeanbot\n");
+    sendServerMessage("USER Gambot 8 * :Java Gambot\n");
+    sendServerMessage("JOIN ##Gambot\n");
+  }
+
+  public static void reconnect() throws IOException, InterruptedException {
+    serverConnection = createConnection("chat.freenode.net",6667);
+    login();
+    core.put("message_count","0");
+  }
+
+
+
+//-----//-----//-----// API Methods //-----//-----//-----//
+  public static void sleep(int millis) throws InterruptedException {
+    try {
+      Thread.sleep(millis);
+    }
+    catch (InterruptedException e) {
+      System.out.println("Interrupted");
+      System.exit(0);
+    }
   }
 
   public static void sendServerMessage(String message) throws IOException {
@@ -82,23 +119,15 @@ public class beanbot {
     }
   }
 
-  public static void login() throws IOException {
-    System.out.println("Attempting to log in.");
-    sendServerMessage("NICK Gambeanbot\n");
-    sendServerMessage("USER Gambot 8 * :Java Gambot\n");
-    sendServerMessage("JOIN ##Gambot\n");
-  }
 
-  public static void reconnect() throws IOException, InterruptedException {
-    serverConnection = createConnection("chat.freenode.net",6667);
-    login();
-    core.put("message_count","0");
-  }
 
+//-----//-----//-----// Main Loop //-----//-----//-----//
   public static void main(String[] args) throws IOException, InterruptedException {
     core.put("home_directory",new java.io.File("").getAbsolutePath());
     core.put("configuration_file","config.txt");
     core.put("message_count","0");
+    core.put("verbose","1");
+    core.put("debug","1");
 
     serverConnection = createConnection("chat.freenode.net",6667);
     login();
