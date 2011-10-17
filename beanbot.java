@@ -34,7 +34,7 @@ public class beanbot {
   }
 
   public static SocketChannel createConnection(String server, int port) throws IOException, InterruptedException {
-    System.out.print("Connecting");
+    System.out.print("Attempting to connect.");
     SocketChannel socketConnection = SocketChannel.open();
     socketConnection.configureBlocking(false);
     socketConnection.connect(new InetSocketAddress(server, port));
@@ -57,7 +57,7 @@ public class beanbot {
   }
 
   public static void login() throws IOException {
-    System.out.println("Logging in.");
+    System.out.println("Attempting to log in.");
     sendServerMessage("NICK Gambeanbot\n");
     sendServerMessage("USER Gambot 8 * :Java Gambot\n");
     sendServerMessage("JOIN ##Gambot\n");
@@ -96,7 +96,7 @@ public class beanbot {
 	  String s = new String(bytes,"UTF-8");
 	  incoming = incoming + s;
 	  //TODO: Handle incoming message
-	  System.out.println(incoming);
+	  System.out.println("INCOMING " + incoming);
 	}
       }
     }
