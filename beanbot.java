@@ -85,6 +85,7 @@ public class beanbot {
   }
 
   public static void reconnect() throws IOException, InterruptedException {
+    event_output("Reconnecting.");
     serverConnection = createConnection("chat.freenode.net",6667);
     login();
     core.put("message_count","0");
@@ -119,6 +120,7 @@ public class beanbot {
 
   public static void kill_pipe(String pipeid) {
     if(check_pipe_exists(pipeid) == true) {
+      debug_output("Killing pipe named " + pipeid);
       processes.get(pipeid).destroy();
       processes.remove(pipeid);
       readpipes.remove(pipeid);
@@ -131,6 +133,7 @@ public class beanbot {
 
   public static void run_command(String pipeid, String command) throws IOException {
     if(check_pipe_exists(pipeid) == false) {
+      debug_output("Starting a pipe named " + pipeid + " with the command: " + command);
       Process new_process = run_time.exec(command);
       processes.put(pipeid, new_process);
       readpipes.put(pipeid, new_process.getInputStream());
@@ -159,7 +162,7 @@ public class beanbot {
       int numberBytesRead = serverConnection.read(fromServer);
 
       if (numberBytesRead == -1) {
-	error_output("IRC connection died. Reconnecting.");
+	error_output("IRC connection died.");
 	reconnect();
       }
       else {
