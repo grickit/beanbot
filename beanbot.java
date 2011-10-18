@@ -155,10 +155,15 @@ public class beanbot {
       processes.put(pipeid, new_process);
       readpipes.put(pipeid, new_process.getInputStream());
       writepipes.put(pipeid, new_process.getOutputStream());
+      send_pipe_message(pipeid,pipeid);
     }
     else {
       error_output("Tried to start a pipe named " + pipeid + " but an existing pipe has that name.");
     }
+  }
+
+  public static void send_pipe_message(String pipeid, String message) throws IOException { // Sends a message to a child pipeid
+    writepipes.get(pipeid).write((message + "\n").getBytes());
   }
 
 
