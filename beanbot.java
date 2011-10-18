@@ -3,6 +3,7 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
+import java.util.regex.*;
 import java.lang.*;
 
 public class beanbot {
@@ -142,7 +143,10 @@ public class beanbot {
 	  String s = new String(bytes,"UTF-8");
 	  incoming = incoming + s;
 	  //TODO: Handle incoming message
-	  normal_output("INCOMING",incoming);
+	  String[] lines = Pattern.compile("[\r\n]+").split(incoming);
+	  for(int i = 0; i < lines.length; i++) {
+	    normal_output("INCOMING",lines[i]);
+	  }
 	}
       }
     }
