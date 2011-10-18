@@ -19,25 +19,9 @@ public class beanbot {
   private static Hashtable<String,String> variables = new Hashtable<String,String>();
   private static Hashtable<String,String> persistent = new Hashtable<String,String>();
 
-  private static Hashtable<String,Process> processes = new Hashtable<String,Process>();
-  private static Hashtable<String,InputStream> readpipes = new Hashtable<String,InputStream>();
-  private static Hashtable<String,OutputStream> writepipes = new Hashtable<String,OutputStream>();
-  private static Hashtable<String,String> backbuffers = new Hashtable<String,String>();
 
 
 //-----//-----//-----// IO Methods //-----//-----//-----//
-  public static String check_pipe_status(String pipeid) throws IOException { // Checks if a child pipe is still alive
-    byte[] buffer = new byte[1];
-    int numberBytesRead = readpipes.get(pipeid).read(buffer,0,1);
-
-    if (numberBytesRead == -1) { return "dead"; }
-    else if(numberBytesRead > 0) {
-      String s = new String(buffer,"UTF-8");
-      return s;
-    }
-    else { return "later"; }
-  }
-
   public static String generate_timestamp() { // Returns a timestamp string
     Calendar calendar = Calendar.getInstance();
     return "" + calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE)  + ":" + calendar.get(Calendar.SECOND);
@@ -125,36 +109,6 @@ public class beanbot {
       serverConnection.write(toServer);
     }
     toServer.clear();
-  }
-
-  public static boolean check_pipe_exists(String pipeid) { // Checks if a child pipe exists
-    return processes.containsKey(pipeid);
-  }
-
-  public static void kill_pipe(String pipeid) { // Kills a child pipe
-    if(check_pipe_exists(pipeid) == true) {
-      debug_output("Killing pipe named " + pipeid);
-      processes.get(pipeid).destroy();
-      processes.remove(pipeid);
-      readpipes.remove(pipeid);
-      writepipes.remove(pipeid);
-    }
-    else {
-      error_output("Tried to kill a pipe named " + pipeid + " but no pipe exists with that name.");
-    }
-  }
-
-  public static void run_command(String pipeid, String command) throws IOException { // Starts a child pipe with a system call
-    if(check_pipe_exists(pipeid) == false) {
-      debug_output("Starting a pipe named " + pipeid + " with the command: " + command);
-      Process new_process = run_time.exec(command);
-      processes.put(pipeid, new_process);
-      readpipes.put(pipeid, new_process.getInputStream());
-      writepipes.put(pipeid, new_process.getOutputStream());
-    }
-    else {
-      error_output("Tried to start a pipe named " + pipeid + " but an existing pipe has that name.");
-    }
   }
 
 
