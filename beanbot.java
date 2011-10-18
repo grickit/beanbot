@@ -21,9 +21,18 @@ public class beanbot {
   private static Hashtable<String,String> variables = new Hashtable<String,String>();
   private static Hashtable<String,String> persistent = new Hashtable<String,String>();
 
+  private static Hashtable<String,Process> processes = new Hashtable<String,Process>();
+  private static Hashtable<String,InputStream> readpipes = new Hashtable<String,InputStream>();
+  private static Hashtable<String,OutputStream> writepipes = new Hashtable<String,OutputStream>();
+  private static Hashtable<String,String> backbuffers = new Hashtable<String,String>();
+
 
 
 //-----//-----//-----// IO Methods //-----//-----//-----//
+  public static Integer check_pipe_status(String pipeid) throws IOException { // Checks if a child pipe is still alive
+    return readpipes.get(pipeid).available();
+  }
+
   public static String generate_timestamp() { // Returns a timestamp string
     Calendar calendar = Calendar.getInstance();
     return "" + calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE)  + ":" + calendar.get(Calendar.SECOND);
@@ -113,10 +122,42 @@ public class beanbot {
     toServer.clear();
   }
 
+  public static boolean check_pipe_exists(String pipeid) { // Checks if a child pipe exists
+      return processes.containsKey(pipeid);
+    }
+
+  public static void kill_pipe(String pipeid) { // Kills a child pipe
+    if(check_pipe_exists(pipeid) == true) {
+      debug_output("Killing pipe named " + pipeid);
+      processes.get(pipeid).destroy();
+      processes.remove(pipeid);
+      readpipes.remove(pipeid);
+      writepipes.remove(pipeid);
+    }
+    else {
+      error_output("Tried to kill a pipe named " + pipeid + " but no pipe exists with that name.");
+    }
+  }
+
+  public static void run_command(String pipeid, String command) throws IOException { // Starts a child pipe with a system call
+    if(check_pipe_exists(pipeid) == false) {
+      debug_output("Starting a pipe named " + pipeid + " with the command: " + command);
+      Process new_process = run_time.exec(command);
+      processes.put(pipeid, new_process);
+      readpipes.put(pipeid, new_process.getInputStream());
+      writepipes.put(pipeid, new_process.getOutputStream());
+    }
+    else {
+      error_output("Tried to start a pipe named " + pipeid + " but an existing pipe has that name.");
+    }
+  }
 
 
 //-----//-----//-----// Main Loop //-----//-----//-----//
   public static void main(String[] args) throws IOException, InterruptedException {
+    readpipes.put("main",System.in);
+    writepipes.put("main",System.out);
+
     core.put("home_directory",new java.io.File("").getAbsolutePath());
     core.put("configuration_file","config.txt");
     core.put("message_count","0");
@@ -152,10 +193,17 @@ public class beanbot {
 	  }
 	}
       }
-      //-----//-----// Read from terminal //-----//-----//
-      if(System.in.available() > 0) {
-	String incoming = stdin.readLine();
-	send_server_message(incoming);
+      //-----//-----// Read from children //-----//-----//
+      Enumeration children = readpipes.keys();
+      while(children.hasMoreElements()) {
+	String pipeid = children.nextElement().toString();
+	Integer bytes_left = readpipes.get(pipeid).available();
+	if(bytes_left > 0) {
+	  byte[] bytes = new byte[bytes_left];
+	  readpipes.get(pipeid).read(bytes,0,bytes_left);
+	  String incoming = new String(bytes,"UTF-8");
+	  send_server_message(incoming);
+	}
       }
     }
   }
