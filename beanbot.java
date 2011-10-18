@@ -3,22 +3,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.OutputStream;
-
 import java.net.InetSocketAddress;
-
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
-
 import java.lang.Process;
 import java.lang.Runtime;
 import java.util.regex.Pattern;
 import java.lang.System;
 
 public class beanbot {
+
 
 
 //-----//-----//-----// Setup //-----//-----//-----//
@@ -165,6 +162,7 @@ public class beanbot {
   }
 
 
+
 //-----//-----//-----// Main Loop //-----//-----//-----//
   public static void main(String[] args) throws IOException, InterruptedException {
     readpipes.put("main",System.in);
@@ -205,6 +203,7 @@ public class beanbot {
 	  }
 	}
       }
+
       //-----//-----// Read from children //-----//-----//
       Enumeration children = readpipes.keys();
       while(children.hasMoreElements()) {
