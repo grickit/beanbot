@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.lang.Number;
 import java.lang.Process;
 import java.lang.Runtime;
 import java.util.regex.Pattern;
@@ -199,6 +200,9 @@ public class beanbot {
 	  String[] lines = Pattern.compile("[\r\n]+").split(incoming);
 	  for(int i = 0; i < lines.length; i++) {
 	    normal_output("INCOMING",lines[i]);
+
+	    Integer message_count = Integer.parseInt(core.get("message_count")) + 1;
+	    core.put("message_count",message_count.toString());
 	  }
 	}
       }
