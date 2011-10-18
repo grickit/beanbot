@@ -11,6 +11,7 @@ public class beanbot {
 
 //-----//-----//-----// Setup //-----//-----//-----//
   private static Runtime run_time = Runtime.getRuntime();
+  private static BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
   private static SocketChannel serverConnection;
   private static ByteBuffer toServer = ByteBuffer.allocateDirect(1024);
@@ -77,9 +78,9 @@ public class beanbot {
 
   public static void login() throws IOException { // Send our credentials to the server
     event_output("Attempting to log in.");
-    send_server_message("NICK Gambeanbot\n");
-    send_server_message("USER Gambot 8 * :Java Gambot\n");
-    send_server_message("JOIN ##Gambot\n");
+    send_server_message("NICK Gambeanbot");
+    send_server_message("USER Gambot 8 * :Java Gambot");
+    send_server_message("JOIN ##Gambot");
   }
 
   public static void reconnect() throws IOException, InterruptedException { // Recreates the connection
@@ -104,7 +105,7 @@ public class beanbot {
   }
 
   public static void send_server_message(String message) throws IOException { // Sends a message to the IRC server
-    toServer.put(message.getBytes());
+    toServer.put((message + "\n").getBytes());
     toServer.flip();
     while(toServer.hasRemaining()) {
       serverConnection.write(toServer);
@@ -126,6 +127,8 @@ public class beanbot {
     login();
 
     while(sleep(10)) {
+
+      //-----//-----// Read from server //-----//-----//
       fromServer.clear();
       int numberBytesRead = serverConnection.read(fromServer);
 
@@ -148,6 +151,11 @@ public class beanbot {
 	    normal_output("INCOMING",lines[i]);
 	  }
 	}
+      }
+      //-----//-----// Read from terminal //-----//-----//
+      if(System.in.available() > 0) {
+	String incoming = stdin.readLine();
+	send_server_message(incoming);
       }
     }
   }
