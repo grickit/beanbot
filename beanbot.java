@@ -1,10 +1,22 @@
-import java.io.*;
-import java.net.*;
-import java.nio.*;
-import java.nio.channels.*;
-import java.util.*;
-import java.util.regex.*;
-import java.lang.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import java.net.InetSocketAddress;
+
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+
+import java.util.Calendar;
+import java.util.Enumeration;
+import java.util.Hashtable;
+
+import java.lang.Process;
+import java.lang.Runtime;
+import java.util.regex.Pattern;
+import java.lang.System;
 
 public class beanbot {
 
