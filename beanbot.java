@@ -33,7 +33,6 @@ public class beanbot {
   private static Hashtable<String,Process> processes = new Hashtable<String,Process>();
   private static Hashtable<String,InputStream> readpipes = new Hashtable<String,InputStream>();
   private static Hashtable<String,OutputStream> writepipes = new Hashtable<String,OutputStream>();
-  private static Hashtable<String,String> backbuffers = new Hashtable<String,String>();
 
 
 
@@ -133,7 +132,7 @@ public class beanbot {
 
   public static boolean check_pipe_exists(String pipeid) { // Checks if a child pipe exists
       return processes.containsKey(pipeid);
-    }
+  }
 
   public static void kill_pipe(String pipeid) { // Kills a child pipe
     if(check_pipe_exists(pipeid) == true) {
