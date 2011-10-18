@@ -22,20 +22,32 @@ public class beanbot {
   private static Hashtable<String,Process> processes = new Hashtable<String,Process>();
   private static Hashtable<String,InputStream> readpipes = new Hashtable<String,InputStream>();
   private static Hashtable<String,OutputStream> writepipes = new Hashtable<String,OutputStream>();
-
+  private static Hashtable<String,String> backbuffers = new Hashtable<String,String>();
 
 
 //-----//-----//-----// IO Methods //-----//-----//-----//
-  public static String generate_timestamp() {
+  public static String check_pipe_status(String pipeid) throws IOException { // Checks if a child pipe is still alive
+    byte[] buffer = new byte[1];
+    int numberBytesRead = readpipes.get(pipeid).read(buffer,0,1);
+
+    if (numberBytesRead == -1) { return "dead"; }
+    else if(numberBytesRead > 0) {
+      String s = new String(buffer,"UTF-8");
+      return s;
+    }
+    else { return "later"; }
+  }
+
+  public static String generate_timestamp() { // Returns a timestamp string
     Calendar calendar = Calendar.getInstance();
     return "" + calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE)  + ":" + calendar.get(Calendar.SECOND);
   }
 
-  public static void log_output(String prefix, String message) {
+  public static void log_output(String prefix, String message) { // Logs a message to a file
     // TODO print logs
   }
 
-  public static void stdout_output(String prefix, String message) {
+  public static void stdout_output(String prefix, String message) { // Logs a message to STDOUT
     System.out.println(prefix + " " + generate_timestamp() + " " + message);
   }
 
@@ -69,7 +81,7 @@ public class beanbot {
 
 
 //-----//-----//-----// Connection Methods //-----//-----//-----//
-  public static SocketChannel createConnection(String server, int port) throws IOException, InterruptedException {
+  public static SocketChannel createConnection(String server, int port) throws IOException, InterruptedException { // Creates a connection
     event_output("Attempting to connect.");
     SocketChannel socketConnection = SocketChannel.open();
     socketConnection.configureBlocking(false);
@@ -78,14 +90,14 @@ public class beanbot {
     return socketConnection;
   }
 
-  public static void login() throws IOException {
+  public static void login() throws IOException { // Send our credentials to the server
     event_output("Attempting to log in.");
     send_server_message("NICK Gambeanbot\n");
     send_server_message("USER Gambot 8 * :Java Gambot\n");
     send_server_message("JOIN ##Gambot\n");
   }
 
-  public static void reconnect() throws IOException, InterruptedException {
+  public static void reconnect() throws IOException, InterruptedException { // Recreates the connection
     event_output("Reconnecting.");
     serverConnection = createConnection("chat.freenode.net",6667);
     login();
@@ -95,7 +107,7 @@ public class beanbot {
 
 
 //-----//-----//-----// API Methods //-----//-----//-----//
-  public static boolean sleep(int millis) throws InterruptedException {
+  public static boolean sleep(int millis) throws InterruptedException { // Sleeps
     try {
       Thread.sleep(millis);
     }
@@ -106,7 +118,7 @@ public class beanbot {
     return true;
   }
 
-  public static void send_server_message(String message) throws IOException {
+  public static void send_server_message(String message) throws IOException { // Sends a message to the IRC server
     toServer.put(message.getBytes());
     toServer.flip();
     while(toServer.hasRemaining()) {
@@ -115,11 +127,11 @@ public class beanbot {
     toServer.clear();
   }
 
-  public static boolean check_pipe_exists(String pipeid) {
+  public static boolean check_pipe_exists(String pipeid) { // Checks if a child pipe exists
     return processes.containsKey(pipeid);
   }
 
-  public static void kill_pipe(String pipeid) {
+  public static void kill_pipe(String pipeid) { // Kills a child pipe
     if(check_pipe_exists(pipeid) == true) {
       debug_output("Killing pipe named " + pipeid);
       processes.get(pipeid).destroy();
@@ -132,7 +144,7 @@ public class beanbot {
     }
   }
 
-  public static void run_command(String pipeid, String command) throws IOException {
+  public static void run_command(String pipeid, String command) throws IOException { // Starts a child pipe with a system call
     if(check_pipe_exists(pipeid) == false) {
       debug_output("Starting a pipe named " + pipeid + " with the command: " + command);
       Process new_process = run_time.exec(command);
