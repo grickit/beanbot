@@ -3,9 +3,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+import java.net.Socket;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -23,9 +21,10 @@ public class beanbot {
   private static Runtime run_time = Runtime.getRuntime();
   private static BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
-  private static SocketChannel serverConnection;
-  private static ByteBuffer toServer = ByteBuffer.allocateDirect(1024);
-  private static ByteBuffer fromServer = ByteBuffer.allocateDirect(1024);
+  private static Socket serverConnection;
+  private static OutputStream toServer;
+  private static InputStream fromServer;
+  private static String serverBackbuffer = "";
   private static Hashtable<String,String> core = new Hashtable<String,String>(); // Core values
   private static Hashtable<String,String> config = new Hashtable<String,String>(); // Values from the config file
   private static Hashtable<String,String> variables = new Hashtable<String,String>(); // Variables that children have asked to store
@@ -120,12 +119,12 @@ public class beanbot {
 
 
 //-----//-----//-----// Connection Methods //-----//-----//-----//
-  public static SocketChannel createConnection(String server, int port) throws IOException, InterruptedException { // Creates a connection
+  public static Socket createConnection(String server, int port) throws IOException, InterruptedException { // Creates a connection
     event_output("Attempting to connect.");
-    SocketChannel socketConnection = SocketChannel.open();
-    socketConnection.configureBlocking(false);
-    socketConnection.connect(new InetSocketAddress(server, port));
-    while(!socketConnection.finishConnect()) { sleep(100); }
+    Socket socketConnection = new Socket(server,port);
+    while(!socketConnection.isConnected()) { sleep(10); }
+    toServer = socketConnection.getOutputStream();
+    fromServer = socketConnection.getInputStream();
     return socketConnection;
   }
 
@@ -177,12 +176,8 @@ public class beanbot {
   }
 
   public static void send_server_message(String message) throws IOException { // Sends a message to the IRC server
-    toServer.put((message + "\n").getBytes());
-    toServer.flip();
-    while(toServer.hasRemaining()) {
-      serverConnection.write(toServer);
-    }
-    toServer.clear();
+    toServer.write((message + "\n").getBytes());
+    toServer.flush();
   }
 
   public static void send_pipe_message(String pipeid, String message) throws IOException { // Sends a message to a child pipeid
@@ -199,12 +194,14 @@ public class beanbot {
       return processes.containsKey(pipeid);
   }
 
-  public static void kill_pipe(String pipeid) { // Kills a child pipe
+  public static void kill_pipe(String pipeid) throws IOException { // Kills a child pipe
     if(check_pipe_exists(pipeid) == true) {
       debug_output("Killing pipe named " + pipeid);
       processes.get(pipeid).destroy();
       processes.remove(pipeid);
+      readpipes.get(pipeid).close();
       readpipes.remove(pipeid);
+      writepipes.get(pipeid).close();
       writepipes.remove(pipeid);
     }
     else {
@@ -244,33 +241,21 @@ public class beanbot {
     while(sleep(10)) {
 
       //-----//-----// Read from server //-----//-----//
-      fromServer.clear();
-      int numberBytesRead = serverConnection.read(fromServer);
-
-      if (numberBytesRead == -1) {
+      if (serverConnection.isClosed()) {
 	error_output("IRC connection died.");
 	if(get_core_value("staydead") != "1") { reconnect(); }
       }
       else {
-	String incoming = "";
-	fromServer.flip();
-	byte[] bytes = new byte[fromServer.remaining()];
-	fromServer.get(bytes);
-
-	if(bytes.length > 0) {
-	  String s = new String(bytes,"UTF-8");
-	  incoming = incoming + s;
-	  //TODO: Handle incoming message
-	  String[] lines = Pattern.compile("[\r\n]+").split(incoming);
-	  for(int i = 0; i < lines.length; i++) {
-	    normal_output("INCOMING",lines[i]);
-	    String pipeid = "fork" + get_core_value("message_count");
-	    run_command(pipeid,"perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl");
-	    send_pipe_message(pipeid,"Gambeanbot");
-	    send_pipe_message(pipeid,lines[i]);
-	    Integer message_count = Integer.parseInt(core.get("message_count")) + 1;
-	    set_core_value("message_count",message_count.toString());
-	  }
+	BufferedReader reader = new BufferedReader(new InputStreamReader(fromServer));
+	while(reader.ready()) {
+	  String incoming = reader.readLine();
+	  normal_output("INCOMING",incoming);
+	  String pipeid = "fork" + get_core_value("message_count");
+	  run_command(pipeid,"perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl");
+	  send_pipe_message(pipeid,"Gambeanbot");
+	  send_pipe_message(pipeid,incoming);
+	  Integer message_count = Integer.parseInt(core.get("message_count")) + 1;
+	  set_core_value("message_count",message_count.toString());
 	}
       }
 
@@ -278,11 +263,9 @@ public class beanbot {
       Enumeration children = readpipes.keys();
       while(children.hasMoreElements()) {
 	String pipeid = children.nextElement().toString();
-	Integer bytes_left = readpipes.get(pipeid).available();
-	if(bytes_left > 0) {
-	  byte[] bytes = new byte[bytes_left];
-	  readpipes.get(pipeid).read(bytes,0,bytes_left);
-	  String incoming = new String(bytes,"UTF-8");
+	BufferedReader reader = new BufferedReader(new InputStreamReader(readpipes.get(pipeid)));
+	while(reader.ready()) {
+	  String incoming = reader.readLine();
 	  System.out.println(incoming);
 	}
       }
