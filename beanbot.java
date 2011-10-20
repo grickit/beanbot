@@ -26,14 +26,14 @@ public class beanbot {
   private static SocketChannel serverConnection;
   private static ByteBuffer toServer = ByteBuffer.allocateDirect(1024);
   private static ByteBuffer fromServer = ByteBuffer.allocateDirect(1024);
-  private static Hashtable<String,String> core = new Hashtable<String,String>();
-  private static Hashtable<String,String> config = new Hashtable<String,String>();
-  private static Hashtable<String,String> variables = new Hashtable<String,String>();
-  private static Hashtable<String,String> persistent = new Hashtable<String,String>();
+  private static Hashtable<String,String> core = new Hashtable<String,String>(); // Core values
+  private static Hashtable<String,String> config = new Hashtable<String,String>(); // Values from the config file
+  private static Hashtable<String,String> variables = new Hashtable<String,String>(); // Variables that children have asked to store
+  private static Hashtable<String,String> persistent = new Hashtable<String,String>(); // Persistant variables that children have asked to store
 
-  private static Hashtable<String,Process> processes = new Hashtable<String,Process>();
-  private static Hashtable<String,InputStream> readpipes = new Hashtable<String,InputStream>();
-  private static Hashtable<String,OutputStream> writepipes = new Hashtable<String,OutputStream>();
+  private static Hashtable<String,Process> processes = new Hashtable<String,Process>(); // Children processes
+  private static Hashtable<String,InputStream> readpipes = new Hashtable<String,InputStream>(); // How we get messages from children
+  private static Hashtable<String,OutputStream> writepipes = new Hashtable<String,OutputStream>(); // How we send messages to children
 
 
 
@@ -68,15 +68,15 @@ public class beanbot {
 
   public static void normal_output(String prefix, String message) { // For general logging. Always logged. Output if verbose.
     log_output(prefix,message);
-    if(core.get("verbose") == "1") {
+    if(get_core_value("verbose") == "1") {
       stdout_output(prefix,message);
     }
   }
 
   public static void debug_output(String message) { // For deep debug logging. Logged if debug. Output if debug and verbose.
-    if(core.get("debug") == "1") {
+    if(get_core_value("debug") == "1") {
       log_output("BOTDEBUG",message);
-      if(core.get("verbose") == "1") {
+      if(get_core_value("verbose") == "1") {
 	stdout_output("BOTDEBUG",message);
       }
     }
@@ -105,12 +105,31 @@ public class beanbot {
     event_output("Reconnecting.");
     serverConnection = createConnection("chat.freenode.net",6667);
     login();
-    core.put("message_count","0");
+    set_core_value("message_count","0");
   }
 
 
 
 //-----//-----//-----// API Methods //-----//-----//-----//
+  public static String get_config_value(String name) { // Get a value fron config
+    return (config.containsKey(name)) ? config.get(name) : "";
+  }
+  public static String get_core_value(String name) { // Get a value from core
+    return (core.containsKey(name)) ? core.get(name) : "";
+  }
+  public static String get_variable_value(String name) { // Get a value from variables
+    return (variables.containsKey(name)) ? variables.get(name) : "";
+  }
+  public static void set_config_value(String name, String value) {
+    config.put(name,value);
+  }
+  public static void set_core_value(String name, String value) {
+    core.put(name,value);
+  }
+  public static void set_variable_value(String name, String value) {
+    variables.put(name,value);
+  }
+
   public static boolean sleep(int millis) throws InterruptedException { // Sleeps
     try {
       Thread.sleep(millis);
@@ -179,10 +198,10 @@ public class beanbot {
     readpipes.put("main",System.in);
     writepipes.put("main",System.out);
 
-    core.put("home_directory",new java.io.File("").getAbsolutePath());
-    core.put("configuration_file","config.txt");
-    core.put("message_count","0");
-    core.put("verbose","1");
+    set_core_value("home_directory",new java.io.File("").getAbsolutePath());
+    set_core_value("configuration_file","config.txt");
+    set_core_value("message_count","0");
+    set_core_value("verbose","1");
     //core.put("debug","1");
 
     serverConnection = createConnection("chat.freenode.net",6667);
@@ -211,11 +230,11 @@ public class beanbot {
 	  String[] lines = Pattern.compile("[\r\n]+").split(incoming);
 	  for(int i = 0; i < lines.length; i++) {
 	    normal_output("INCOMING",lines[i]);
-	    run_command(("fork" + core.get("message_count")),"perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl");
-	    send_pipe_message(("fork" + core.get("message_count")),"Gambeanbot");
-	    send_pipe_message(("fork" + core.get("message_count")),lines[i]);
-	    Integer message_count = Integer.parseInt(core.get("message_count")) + 1;
-	    core.put("message_count",message_count.toString());
+	    String pipeid = "fork" + get_core_value("message_count");
+	    run_command(pipeid,"perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl");
+	    send_pipe_message(pipeid,"Gambeanbot");
+	    send_pipe_message(pipeid,lines[i]);
+	    set_core_value("message_count",String.valueOf(Integer.parseInt(get_core_value("message_count") + 1)));
 	  }
 	}
       }
