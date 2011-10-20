@@ -37,6 +37,41 @@ public class beanbot {
 
 
 
+//-----//-----//-----// Config Methods //-----//-----//-----//
+  public static void parse_arguments (String args[]) {
+    for(Integer i = 0; i < args.length; i++) {
+      String current_arg = args[i];
+      if(current_arg.equals("-v") || current_arg.equals("--verbose")) { set_core_value("verbose","1"); }
+      else if (current_arg.equals("--debug")) { set_core_value("debug","1"); }
+      else if (current_arg.equals("--unlogged")) { set_core_value("unlogged","1"); }
+      else if (current_arg.equals("--staydead")) { set_core_value("staydead","1"); }
+      else if (current_arg.equals("--config")) { i++; set_core_value("config",args[i]); }
+      else {
+	System.out.println("Usage: perl Gambot.pl [OPTION]...");
+	System.out.println("A flexible IRC bot framework that can be updated and fixed while running.\n");
+	System.out.println("-v, --verbose	Prints all messages to the terminal.");
+	System.out.println("		perl gambot.pl --verbose\n");
+	System.out.println("--debug		Enables debug message logging");
+	System.out.println("		perl gambot.pl --debug\n");
+	System.out.println("--unlogged	Disables logging of messages to files.");
+	System.out.println("		perl gambot.pl --unlogged\n");
+	System.out.println("--config	The argument after this specifies the configuration file to use.");
+	System.out.println("		These are stored in " + get_core_value("home_directory") + "/configurations/");
+	System.out.println("		Only give a file name. Not a path.");
+	System.out.println("		perl gambot.pl --config foo.txt\n");
+	System.out.println("--staydead	The bot will not automatically reconnect.");
+	System.out.println("		perl gambot.pl --staydead\n");
+	System.out.println("--help		Displays this help.");
+	System.out.println("		perl gambot.pl --help\n");
+	System.out.println("Ordinarily Gambot will not print much output to the terminal, but will log everything to files.");
+	System.out.println(get_core_value("home_directory") + "/configurations/config.txt is the default configuration file.\n");
+	System.exit(0);
+      }
+    }
+  }
+
+
+
 //-----//-----//-----// IO Methods //-----//-----//-----//
   public static Integer check_pipe_status(String pipeid) throws IOException { // Checks if a child pipe is still alive
     return readpipes.get(pipeid).available();
@@ -201,8 +236,7 @@ public class beanbot {
     set_core_value("home_directory",new java.io.File("").getAbsolutePath());
     set_core_value("configuration_file","config.txt");
     set_core_value("message_count","0");
-    set_core_value("verbose","1");
-    //core.put("debug","1");
+    parse_arguments(args);
 
     serverConnection = createConnection("chat.freenode.net",6667);
     login();
@@ -215,7 +249,7 @@ public class beanbot {
 
       if (numberBytesRead == -1) {
 	error_output("IRC connection died.");
-	reconnect();
+	if(get_core_value("staydead") != "1") { reconnect(); }
       }
       else {
 	String incoming = "";
@@ -234,7 +268,8 @@ public class beanbot {
 	    run_command(pipeid,"perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl");
 	    send_pipe_message(pipeid,"Gambeanbot");
 	    send_pipe_message(pipeid,lines[i]);
-	    set_core_value("message_count",String.valueOf(Integer.parseInt(get_core_value("message_count") + 1)));
+	    Integer message_count = Integer.parseInt(core.get("message_count")) + 1;
+	    set_core_value("message_count",message_count.toString());
 	  }
 	}
       }
