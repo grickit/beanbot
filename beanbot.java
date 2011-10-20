@@ -164,6 +164,7 @@ public class beanbot {
 
   public static void send_pipe_message(String pipeid, String message) throws IOException { // Sends a message to a child pipeid
     writepipes.get(pipeid).write((message + "\n").getBytes());
+    writepipes.get(pipeid).flush();
   }
 
 
@@ -177,7 +178,7 @@ public class beanbot {
     core.put("configuration_file","config.txt");
     core.put("message_count","0");
     core.put("verbose","1");
-    core.put("debug","1");
+    //core.put("debug","1");
 
     serverConnection = createConnection("chat.freenode.net",6667);
     login();
@@ -205,7 +206,9 @@ public class beanbot {
 	  String[] lines = Pattern.compile("[\r\n]+").split(incoming);
 	  for(int i = 0; i < lines.length; i++) {
 	    normal_output("INCOMING",lines[i]);
-
+	    run_command(("fork" + core.get("message_count")),"perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl");
+	    send_pipe_message(("fork" + core.get("message_count")),"Gambeanbot");
+	    send_pipe_message(("fork" + core.get("message_count")),lines[i]);
 	    Integer message_count = Integer.parseInt(core.get("message_count")) + 1;
 	    core.put("message_count",message_count.toString());
 	  }
@@ -221,7 +224,7 @@ public class beanbot {
 	  byte[] bytes = new byte[bytes_left];
 	  readpipes.get(pipeid).read(bytes,0,bytes_left);
 	  String incoming = new String(bytes,"UTF-8");
-	  send_server_message(incoming);
+	  System.out.println(incoming);
 	}
       }
     }
