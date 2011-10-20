@@ -163,8 +163,13 @@ public class beanbot {
   }
 
   public static void send_pipe_message(String pipeid, String message) throws IOException { // Sends a message to a child pipeid
-    writepipes.get(pipeid).write((message + "\n").getBytes());
-    writepipes.get(pipeid).flush();
+    if(check_pipe_exists(pipeid) == true) {
+      writepipes.get(pipeid).write((message + "\n").getBytes());
+      writepipes.get(pipeid).flush();
+    }
+    else {
+      error_output("Tried to send a message to pipe named " + pipeid + " but no pipe exists with that name.");
+    }
   }
 
 
