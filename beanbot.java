@@ -131,6 +131,16 @@ public class beanbot {
     toServer.clear();
   }
 
+  public static void send_pipe_message(String pipeid, String message) throws IOException { // Sends a message to a child pipeid
+    if(check_pipe_exists(pipeid) == true) {
+      writepipes.get(pipeid).write((message + "\n").getBytes());
+      writepipes.get(pipeid).flush();
+    }
+    else {
+      error_output("Tried to send a message to pipe named " + pipeid + " but no pipe exists with that name.");
+    }
+  }
+
   public static boolean check_pipe_exists(String pipeid) { // Checks if a child pipe exists
       return processes.containsKey(pipeid);
   }
@@ -159,16 +169,6 @@ public class beanbot {
     }
     else {
       error_output("Tried to start a pipe named " + pipeid + " but an existing pipe has that name.");
-    }
-  }
-
-  public static void send_pipe_message(String pipeid, String message) throws IOException { // Sends a message to a child pipeid
-    if(check_pipe_exists(pipeid) == true) {
-      writepipes.get(pipeid).write((message + "\n").getBytes());
-      writepipes.get(pipeid).flush();
-    }
-    else {
-      error_output("Tried to send a message to pipe named " + pipeid + " but no pipe exists with that name.");
     }
   }
 
