@@ -43,7 +43,7 @@ public class Childpipe {
     process.destroy();
   }
 
-  public void write(String message) throws IOException {
+  public void writeLine(String message) throws IOException {
     input.write((message + "\n").getBytes());
     input.flush();
   }
@@ -58,7 +58,7 @@ public class Childpipe {
 
   public BufferedReader reader() { return reader; }
 
-  public String read() {
+  public String readLine() {
     if(reader.ready() == true) { return reader.readLine(); }
     else { return null; }
   }
