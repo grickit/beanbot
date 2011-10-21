@@ -12,7 +12,7 @@ public class IRCConnection {
   private OutputStream input;
   private BufferedReader reader;
 
-  public void IRCConnection(String server, Integer port) throws IOException, InterruptedException {
+  public IRCConnection(String server, int port) throws IOException, InterruptedException {
     connection = new Socket(server,port);
     while(!connection.isConnected()) { }
     output = connection.getInputStream();
@@ -36,5 +36,10 @@ public class IRCConnection {
   public String readLine() throws IOException {
     if(reader.ready() == true) { return reader.readLine(); }
     else { return null; }
+  }
+
+  public void login(String nick, String user) throws IOException {
+    this.writeLine("NICK " + nick + "\n");
+    this.writeLine("USER " + user + " 8 * :Java Beanbot" + "\n");
   }
 }

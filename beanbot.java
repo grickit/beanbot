@@ -6,10 +6,10 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Calendar;
 import java.util.Enumeration;
-import java.util.Hashtable;
 import java.lang.Number;
 import java.lang.Process;
 import java.lang.Runtime;
+import java.util.Hashtable;
 import java.util.regex.Pattern;
 import java.lang.System;
 
@@ -18,33 +18,28 @@ public class beanbot {
 
 
 //-----//-----//-----// Setup //-----//-----//-----//
-  private static Runtime run_time = Runtime.getRuntime();
   private static BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
-  private static Socket serverConnection;
+  private static IRCConnection serverConnection;
   private static OutputStream toServer;
   private static InputStream fromServer;
   private static String serverBackbuffer = "";
-  private static Hashtable<String,String> core = new Hashtable<String,String>(); // Core values
-  private static Hashtable<String,String> config = new Hashtable<String,String>(); // Values from the config file
-  private static Hashtable<String,String> variables = new Hashtable<String,String>(); // Variables that children have asked to store
-  private static Hashtable<String,String> persistent = new Hashtable<String,String>(); // Persistant variables that children have asked to store
+  private static Hashstorage core = new Hashstorage(); // Core values
+  private static Hashstorage config = new Hashstorage(); // Values from the config file
+  private static Hashstorage variables = new Hashstorage(); // Variables that children have asked to store
+  private static Hashstorage persistent = new Hashstorage(); // Persistant variables that children have asked to store
 
-  private static Hashtable<String,Process> processes = new Hashtable<String,Process>(); // Children processes
-  private static Hashtable<String,InputStream> readpipes = new Hashtable<String,InputStream>(); // How we get messages from children
-  private static Hashtable<String,OutputStream> writepipes = new Hashtable<String,OutputStream>(); // How we send messages to children
-
-
+  private static Hashtable<String,Childpipe> forks = new Hashtable<String,Childpipe>(); // Children processes
 
 //-----//-----//-----// Config Methods //-----//-----//-----//
   public static void parse_arguments (String args[]) {
     for(Integer i = 0; i < args.length; i++) {
       String current_arg = args[i];
-      if(current_arg.equals("-v") || current_arg.equals("--verbose")) { set_core_value("verbose","1"); }
-      else if (current_arg.equals("--debug")) { set_core_value("debug","1"); }
-      else if (current_arg.equals("--unlogged")) { set_core_value("unlogged","1"); }
-      else if (current_arg.equals("--staydead")) { set_core_value("staydead","1"); }
-      else if (current_arg.equals("--config")) { i++; set_core_value("config",args[i]); }
+      if(current_arg.equals("-v") || current_arg.equals("--verbose")) { core.set("verbose","1"); }
+      else if (current_arg.equals("--debug")) { core.set("debug","1"); }
+      else if (current_arg.equals("--unlogged")) { core.set("unlogged","1"); }
+      else if (current_arg.equals("--staydead")) { core.set("staydead","1"); }
+      else if (current_arg.equals("--config")) { i++; core.set("config",args[i]); }
       else {
 	System.out.println("Usage: perl Gambot.pl [OPTION]...");
 	System.out.println("A flexible IRC bot framework that can be updated and fixed while running.\n");
@@ -55,7 +50,7 @@ public class beanbot {
 	System.out.println("--unlogged	Disables logging of messages to files.");
 	System.out.println("		perl gambot.pl --unlogged\n");
 	System.out.println("--config	The argument after this specifies the configuration file to use.");
-	System.out.println("		These are stored in " + get_core_value("home_directory") + "/configurations/");
+	System.out.println("		These are stored in " + core.get("home_directory") + "/configurations/");
 	System.out.println("		Only give a file name. Not a path.");
 	System.out.println("		perl gambot.pl --config foo.txt\n");
 	System.out.println("--staydead	The bot will not automatically reconnect.");
@@ -63,7 +58,7 @@ public class beanbot {
 	System.out.println("--help		Displays this help.");
 	System.out.println("		perl gambot.pl --help\n");
 	System.out.println("Ordinarily Gambot will not print much output to the terminal, but will log everything to files.");
-	System.out.println(get_core_value("home_directory") + "/configurations/config.txt is the default configuration file.\n");
+	System.out.println(core.get("home_directory") + "/configurations/config.txt is the default configuration file.\n");
 	System.exit(0);
       }
     }
@@ -72,10 +67,6 @@ public class beanbot {
 
 
 //-----//-----//-----// IO Methods //-----//-----//-----//
-  public static Integer check_pipe_status(String pipeid) throws IOException { // Checks if a child pipe is still alive
-    return readpipes.get(pipeid).available();
-  }
-
   public static String generate_timestamp() { // Returns a timestamp string
     Calendar calendar = Calendar.getInstance();
     return "" + calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE)  + ":" + calendar.get(Calendar.SECOND);
@@ -102,15 +93,15 @@ public class beanbot {
 
   public static void normal_output(String prefix, String message) { // For general logging. Always logged. Output if verbose.
     log_output(prefix,message);
-    if(get_core_value("verbose") == "1") {
+    if(core.get("verbose") == "1") {
       stdout_output(prefix,message);
     }
   }
 
   public static void debug_output(String message) { // For deep debug logging. Logged if debug. Output if debug and verbose.
-    if(get_core_value("debug") == "1") {
+    if(core.get("debug") == "1") {
       log_output("BOTDEBUG",message);
-      if(get_core_value("verbose") == "1") {
+      if(core.get("verbose") == "1") {
 	stdout_output("BOTDEBUG",message);
       }
     }
@@ -119,51 +110,8 @@ public class beanbot {
 
 
 //-----//-----//-----// Connection Methods //-----//-----//-----//
-  public static Socket createConnection(String server, int port) throws IOException, InterruptedException { // Creates a connection
-    event_output("Attempting to connect.");
-    Socket socketConnection = new Socket(server,port);
-    while(!socketConnection.isConnected()) { sleep(10); }
-    toServer = socketConnection.getOutputStream();
-    fromServer = socketConnection.getInputStream();
-    return socketConnection;
-  }
-
-  public static void login() throws IOException { // Send our credentials to the server
-    event_output("Attempting to log in.");
-    send_server_message("NICK Gambeanbot");
-    send_server_message("USER Gambot 8 * :Java Gambot");
-    send_server_message("JOIN ##Gambot");
-  }
-
-  public static void reconnect() throws IOException, InterruptedException { // Recreates the connection
-    event_output("Reconnecting.");
-    serverConnection = createConnection("chat.freenode.net",6667);
-    login();
-    set_core_value("message_count","0");
-  }
-
-
 
 //-----//-----//-----// API Methods //-----//-----//-----//
-  public static String get_config_value(String name) { // Get a value fron config
-    return (config.containsKey(name)) ? config.get(name) : "";
-  }
-  public static String get_core_value(String name) { // Get a value from core
-    return (core.containsKey(name)) ? core.get(name) : "";
-  }
-  public static String get_variable_value(String name) { // Get a value from variables
-    return (variables.containsKey(name)) ? variables.get(name) : "";
-  }
-  public static void set_config_value(String name, String value) {
-    config.put(name,value);
-  }
-  public static void set_core_value(String name, String value) {
-    core.put(name,value);
-  }
-  public static void set_variable_value(String name, String value) {
-    variables.put(name,value);
-  }
-
   public static boolean sleep(int millis) throws InterruptedException { // Sleeps
     try {
       Thread.sleep(millis);
@@ -175,98 +123,60 @@ public class beanbot {
     return true;
   }
 
-  public static void send_server_message(String message) throws IOException { // Sends a message to the IRC server
-    toServer.write((message + "\n").getBytes());
-    toServer.flush();
-  }
-
-  public static void send_pipe_message(String pipeid, String message) throws IOException { // Sends a message to a child pipeid
-    if(check_pipe_exists(pipeid) == true) {
-      writepipes.get(pipeid).write((message + "\n").getBytes());
-      writepipes.get(pipeid).flush();
-    }
-    else {
-      error_output("Tried to send a message to pipe named " + pipeid + " but no pipe exists with that name.");
-    }
-  }
-
-  public static boolean check_pipe_exists(String pipeid) { // Checks if a child pipe exists
-      return processes.containsKey(pipeid);
-  }
-
-  public static void kill_pipe(String pipeid) throws IOException { // Kills a child pipe
-    if(check_pipe_exists(pipeid) == true) {
-      debug_output("Killing pipe named " + pipeid);
-      processes.get(pipeid).destroy();
-      processes.remove(pipeid);
-      readpipes.get(pipeid).close();
-      readpipes.remove(pipeid);
-      writepipes.get(pipeid).close();
-      writepipes.remove(pipeid);
-    }
-    else {
-      error_output("Tried to kill a pipe named " + pipeid + " but no pipe exists with that name.");
-    }
-  }
-
-  public static void run_command(String pipeid, String command) throws IOException { // Starts a child pipe with a system call
-    if(check_pipe_exists(pipeid) == false) {
-      debug_output("Starting a pipe named " + pipeid + " with the command: " + command);
-      Process new_process = run_time.exec(command);
-      processes.put(pipeid, new_process);
-      readpipes.put(pipeid, new_process.getInputStream());
-      writepipes.put(pipeid, new_process.getOutputStream());
-      send_pipe_message(pipeid,pipeid);
-    }
-    else {
-      error_output("Tried to start a pipe named " + pipeid + " but an existing pipe has that name.");
-    }
-  }
-
-
-
 //-----//-----//-----// Main Loop //-----//-----//-----//
   public static void main(String[] args) throws IOException, InterruptedException {
-    readpipes.put("main",System.in);
-    writepipes.put("main",System.out);
-
-    set_core_value("home_directory",new java.io.File("").getAbsolutePath());
-    set_core_value("configuration_file","config.txt");
-    set_core_value("message_count","0");
+    core.set("home_directory",new java.io.File("").getAbsolutePath());
+    core.set("configuration_file","config.txt");
+    core.set("message_count","0");
     parse_arguments(args);
 
-    serverConnection = createConnection("chat.freenode.net",6667);
-    login();
+    event_output("Attempting to connect.");
+    serverConnection = new IRCConnection("chat.freenode.net",6667);
+    event_output("Attempting to login.");
+    serverConnection.login("Gambeanbot","Gambeanbot");
 
     while(sleep(10)) {
-
       //-----//-----// Read from server //-----//-----//
-      if (serverConnection.isClosed()) {
-	error_output("IRC connection died.");
-	if(get_core_value("staydead") != "1") { reconnect(); }
+      if (serverConnection.alive()) {
+	String incoming = serverConnection.readLine();
+	while(incoming != null) {
+	  normal_output("INCOMING",incoming);
+	  String pipeid = "fork" + core.get("message_count");
+	  forks.put(pipeid,new Childpipe("perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl"));
+	  forks.get(pipeid).writeLine(pipeid);
+	  forks.get(pipeid).writeLine("Gambeanbot");
+	  forks.get(pipeid).writeLine(incoming);
+	  core.increment("message_count");
+
+	  incoming = serverConnection.readLine();
+	}
       }
       else {
-	BufferedReader reader = new BufferedReader(new InputStreamReader(fromServer));
-	while(reader.ready()) {
-	  String incoming = reader.readLine();
-	  normal_output("INCOMING",incoming);
-	  String pipeid = "fork" + get_core_value("message_count");
-	  run_command(pipeid,"perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl");
-	  send_pipe_message(pipeid,"Gambeanbot");
-	  send_pipe_message(pipeid,incoming);
-	  Integer message_count = Integer.parseInt(core.get("message_count")) + 1;
-	  set_core_value("message_count",message_count.toString());
+	error_output("IRC connection died.");
+	if(core.get("staydead") != "1") {
+	  event_output("Attempting to connect.");
+	  serverConnection = new IRCConnection("chat.freenode.net",6667);
+	  event_output("Attempting to login.");
+	  serverConnection.login("Gambeanbot","Gambeanbot");
+	  core.set("message_count","0");
 	}
       }
 
       //-----//-----// Read from children //-----//-----//
-      Enumeration children = readpipes.keys();
+      Enumeration children = forks.keys();
       while(children.hasMoreElements()) {
 	String pipeid = children.nextElement().toString();
-	BufferedReader reader = new BufferedReader(new InputStreamReader(readpipes.get(pipeid)));
-	while(reader.ready()) {
-	  String incoming = reader.readLine();
-	  System.out.println(incoming);
+
+	if(forks.get(pipeid).alive()) {
+	  String incoming = forks.get(pipeid).readLine();
+	  while(incoming != null) {
+	    System.out.println(incoming);
+	    incoming = forks.get(pipeid).readLine();
+	  }
+	}
+	else {
+	  debug_output(pipeid + "has died.");
+	  forks.remove(pipeid);
 	}
       }
     }

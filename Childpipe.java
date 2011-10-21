@@ -8,7 +8,7 @@ import java.lang.Runtime;
 
 class monitor implements Runnable {
   Childpipe childpipe;
-  public void monitor(Childpipe foo) { childpipe = foo; }
+  public monitor(Childpipe foo) { childpipe = foo; }
 
   public void run() {
     try { childpipe.process().waitFor(); }
@@ -16,6 +16,7 @@ class monitor implements Runnable {
   }
 
   public void main() throws IOException {
+    System.out.println("Hello3");
     childpipe.kill();
   }
 }
@@ -26,14 +27,13 @@ public class Childpipe {
   private InputStream output;
   private OutputStream input;
   private BufferedReader reader;
-  private monitor thread;
 
-  public void childpipe(String command) throws IOException {
+  public Childpipe(String command) throws IOException {
     process = Runtime.getRuntime().exec(command);
     output = process.getInputStream();
     input = process.getOutputStream();
     reader = new BufferedReader(new InputStreamReader(output));
-    thread = new monitor();
+    (new Thread(new monitor(this))).start();
   }
 
   public void kill() throws IOException {
@@ -59,7 +59,7 @@ public class Childpipe {
   public BufferedReader reader() { return reader; }
 
   public String readLine() throws IOException {
-    if(reader.ready() == true) { return reader.readLine(); }
+    if(reader.ready()) { return reader.readLine(); }
     else { return null; }
   }
 }
