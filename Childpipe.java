@@ -43,7 +43,7 @@ public class Childpipe {
     process.destroy();
   }
 
-  public void message(String message) throws IOException {
+  public void write(String message) throws IOException {
     input.write((message + "\n").getBytes());
     input.flush();
   }
