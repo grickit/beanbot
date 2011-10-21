@@ -25,12 +25,14 @@ public class Childpipe {
   private Process process;
   private InputStream output;
   private OutputStream input;
+  private BufferedReader reader;
   private monitor thread;
 
   public void childpipe(String command) throws IOException {
     process = Runtime.getRuntime().exec(command);
     output = process.getInputStream();
     input = process.getOutputStream();
+    reader = new BufferedReader(new InputStreamReader(output));
     thread = new monitor();
   }
 
@@ -53,4 +55,11 @@ public class Childpipe {
   public InputStream output() { return output; }
 
   public OutputStream input() { return input; }
+
+  public BufferedReader reader() { return reader; }
+
+  public String read() {
+    if(reader.ready() == true) { return reader.readLine(); }
+    else { return null; }
+  }
 }
