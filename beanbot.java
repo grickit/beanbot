@@ -14,9 +14,6 @@ import java.util.regex.Pattern;
 import java.lang.System;
 
 public class beanbot {
-
-
-
 //-----//-----//-----// Setup //-----//-----//-----//
   private static BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
@@ -61,8 +58,6 @@ public class beanbot {
     }
   }
 
-
-
 //-----//-----//-----// IO Methods //-----//-----//-----//
   public static String generate_timestamp() { // Returns a timestamp string
     Calendar calendar = Calendar.getInstance();
@@ -90,49 +85,38 @@ public class beanbot {
 
   public static void normal_output(String prefix, String message) { // For general logging. Always logged. Output if verbose.
     log_output(prefix,message);
-    if(core.getAsInt("verbose") == 1) {
+    if(core.get("verbose") == "1") {
       stdout_output(prefix,message);
     }
   }
 
   public static void debug_output(String message) { // For deep debug logging. Logged if debug. Output if debug and verbose.
-    if(core.getAsInt("debug") == 1) {
+    if(core.get("debug") == "1") {
       log_output("BOTDEBUG",message);
-      if(core.getAsInt("verbose") == 1) {
+      if(core.get("verbose") == "1") {
 	stdout_output("BOTDEBUG",message);
       }
     }
   }
 
-
-
 //-----//-----//-----// Connection Methods //-----//-----//-----//
-
-//-----//-----//-----// API Methods //-----//-----//-----//
-  public static boolean sleep(int millis) throws InterruptedException { // Sleeps
-    try {
-      Thread.sleep(millis);
-    }
-    catch (InterruptedException e) {
-      error_output("Interrupted during sleep. Shutting down.");
-      System.exit(0);
-    }
-    return true;
+  public static void create_connection(String server, Integer port) throws IOException, InterruptedException {
+    event_output("Attempting to connect.");
+    serverConnection = new IRCConnection("chat.freenode.net",6667);
+    event_output("Attempting to login.");
+    serverConnection.login("Gambeanbot","Gambeanbot");
+    core.set("message_count","0");
   }
 
 //-----//-----//-----// Main Loop //-----//-----//-----//
   public static void main(String[] args) throws IOException, InterruptedException {
     core.set("home_directory",new java.io.File("").getAbsolutePath());
     core.set("configuration_file","config.txt");
-    core.set("message_count","0");
     parse_arguments(args);
+    create_connection("chat.freenode.net",6667);
 
-    event_output("Attempting to connect.");
-    serverConnection = new IRCConnection("chat.freenode.net",6667);
-    event_output("Attempting to login.");
-    serverConnection.login("Gambeanbot","Gambeanbot");
-
-    while(sleep(10)) {
+    while(true) {
+      Thread.sleep(100);
       //-----//-----// Read from server //-----//-----//
       if (serverConnection.alive()) {
 	String incoming = serverConnection.readLine();
@@ -150,13 +134,7 @@ public class beanbot {
       }
       else {
 	error_output("IRC connection died.");
-	if(core.get("staydead") != "1") {
-	  event_output("Attempting to connect.");
-	  serverConnection = new IRCConnection("chat.freenode.net",6667);
-	  event_output("Attempting to login.");
-	  serverConnection.login("Gambeanbot","Gambeanbot");
-	  core.set("message_count","0");
-	}
+	if(core.get("staydead") != "1") { create_connection("chat.freenode.net",6667); }
       }
 
       //-----//-----// Read from children //-----//-----//
