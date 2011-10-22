@@ -6,28 +6,31 @@ import java.io.OutputStream;
 import java.lang.Process;
 import java.lang.Runtime;
 
-class monitor implements Runnable {
-  Childpipe childpipe;
-  public monitor(Childpipe foo) { childpipe = foo; }
-
-  public void run() {
-    try {
-      String incoming = childpipe.reader().readLine();
-      if(incoming == null) { childpipe.kill(); }
-      else {
-	// Do something with the message
-      }
-    }
-    catch (IOException e) { }
-  }
-}
-
 public class Childpipe {
+
+  class monitor implements Runnable {
+    Childpipe childpipe;
+    public monitor(Childpipe foo) { childpipe = foo; }
+
+    public void run() {
+      try {
+	String incoming = childpipe.reader().readLine();
+	while(incoming != null) {
+	  childpipe.push(incoming);
+	  incoming = childpipe.reader().readLine();
+	}
+	childpipe.preKill();
+      }
+      catch (IOException e) { }
+    }
+  }
+
   private boolean alive = true;
   private Process process;
   private InputStream output;
   private OutputStream input;
   private BufferedReader reader;
+  private String backlog = "";
 
   public Childpipe(String command) throws IOException {
     process = Runtime.getRuntime().exec(command);
@@ -37,8 +40,12 @@ public class Childpipe {
     (new Thread(new monitor(this))).start();
   }
 
-  public void kill() throws IOException {
+  private void preKill() {
     alive = false;
+  }
+
+  public void kill() throws IOException {
+    alive = false; // Probably not needed?
     output.close();
     input.close();
     process.destroy();
@@ -49,7 +56,15 @@ public class Childpipe {
     input.flush();
   }
 
-  public boolean alive() { return alive; }
+  private void push(String message) {
+    backlog = backlog + message + "\n";
+  }
+
+  public boolean alive() {
+    if(alive) return true;
+    else if (backlog == "") return false;
+    else return true;
+  }
 
   public Process process() { return process; }
 
@@ -59,8 +74,9 @@ public class Childpipe {
 
   public BufferedReader reader() { return reader; }
 
-  public String readLine() throws IOException {
-    if(reader.ready()) { return reader.readLine(); }
-    else { return null; }
+  public String[] getLines() throws IOException {
+    String foo = backlog;
+    backlog = "";
+    return foo.split("[\r\n]+");
   }
 }

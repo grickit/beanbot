@@ -142,14 +142,16 @@ public class beanbot {
 	String pipeid = children.nextElement().toString();
 
 	if(forks.get(pipeid).alive()) {
-	  String incoming = forks.get(pipeid).readLine();
-	  while(incoming != null) {
-	    System.out.println(incoming);
-	    incoming = forks.get(pipeid).readLine();
+	  String[] incoming = forks.get(pipeid).getLines();
+	  for(Integer i = 0; i < incoming.length; i++) {
+	    if(incoming[i] != "") {
+	      System.out.println(incoming[i]);
+	    }
 	  }
 	}
 	else {
 	  debug_output(pipeid + " has died.");
+	  forks.get(pipeid).kill();
 	  forks.remove(pipeid);
 	}
       }
