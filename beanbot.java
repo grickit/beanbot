@@ -128,7 +128,6 @@ public class beanbot {
 	  forks.get(pipeid).writeLine("Gambeanbot");
 	  forks.get(pipeid).writeLine(incoming);
 	  core.increment("message_count");
-
 	  incoming = serverConnection.readLine();
 	}
       }

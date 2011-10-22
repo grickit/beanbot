@@ -11,9 +11,13 @@ class monitor implements Runnable {
   public monitor(Childpipe foo) { childpipe = foo; }
 
   public void run() {
-    try { childpipe.process().waitFor(); }
-    catch (InterruptedException e) { }
-    try { childpipe.kill(); }
+    try {
+      String incoming = childpipe.reader().readLine();
+      if(incoming == null) { childpipe.kill(); }
+      else {
+	// Do something with the message
+      }
+    }
     catch (IOException e) { }
   }
 }
