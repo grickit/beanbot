@@ -21,9 +21,6 @@ public class beanbot {
   private static BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
   private static IRCConnection serverConnection;
-  private static OutputStream toServer;
-  private static InputStream fromServer;
-  private static String serverBackbuffer = "";
   private static Hashstorage core = new Hashstorage(); // Core values
   private static Hashstorage config = new Hashstorage(); // Values from the config file
   private static Hashstorage variables = new Hashstorage(); // Variables that children have asked to store
