@@ -13,11 +13,8 @@ class monitor implements Runnable {
   public void run() {
     try { childpipe.process().waitFor(); }
     catch (InterruptedException e) { }
-  }
-
-  public void main() throws IOException {
-    System.out.println("Hello3");
-    childpipe.kill();
+    try { childpipe.kill(); }
+    catch (IOException e) { }
   }
 }
 

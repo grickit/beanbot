@@ -90,15 +90,15 @@ public class beanbot {
 
   public static void normal_output(String prefix, String message) { // For general logging. Always logged. Output if verbose.
     log_output(prefix,message);
-    if(core.get("verbose") == "1") {
+    if(core.getAsInt("verbose") == 1) {
       stdout_output(prefix,message);
     }
   }
 
   public static void debug_output(String message) { // For deep debug logging. Logged if debug. Output if debug and verbose.
-    if(core.get("debug") == "1") {
+    if(core.getAsInt("debug") == 1) {
       log_output("BOTDEBUG",message);
-      if(core.get("verbose") == "1") {
+      if(core.getAsInt("verbose") == 1) {
 	stdout_output("BOTDEBUG",message);
       }
     }
@@ -172,7 +172,7 @@ public class beanbot {
 	  }
 	}
 	else {
-	  debug_output(pipeid + "has died.");
+	  debug_output(pipeid + " has died.");
 	  forks.remove(pipeid);
 	}
       }
