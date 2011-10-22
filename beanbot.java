@@ -112,11 +112,12 @@ public class beanbot {
   public static void main(String[] args) throws IOException, InterruptedException {
     core.set("home_directory",new java.io.File("").getAbsolutePath());
     core.set("configuration_file","config.txt");
+    config.set("delay","100");
     parse_arguments(args);
     create_connection("chat.freenode.net",6667);
 
     while(true) {
-      Thread.sleep(100);
+      Thread.sleep(config.getAsInt("delay"));
       //-----//-----// Read from server //-----//-----//
       if (serverConnection.alive()) {
 	String incoming = serverConnection.readLine();
