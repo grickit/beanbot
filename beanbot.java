@@ -61,38 +61,38 @@ public class beanbot {
   }
 
   public static void parse_GAPIL(String command, String pipeid) throws IOException {
-    String valid_id = "a-zA-Z0-9_#-";
+    String valid_id = "[a-zA-Z0-9_#-]+";
     Matcher matcher;
 
     if((matcher = Pattern.compile("^send_server_message>(.+)$").matcher(command)).matches()) {
       normal_output("OUTGOING",matcher.group(1));
       serverConnection.writeLine(matcher.group(1));
     }
-    else if((matcher = Pattern.compile("^send_pipe_message>(["+valid_id+"]+)>(.+)$").matcher(command)).matches()) {
+    else if((matcher = Pattern.compile("^send_pipe_message>("+valid_id+")>(.+)$").matcher(command)).matches()) {
       if(forks.containsKey(matcher.group(1))) { forks.get(matcher.group(1)).writeLine(matcher.group(2)); }
       else { error_output("Tried to send a message to pipe named "+matcher.group(1)+", but it doesn't exist."); }
     }
 
-    else if((matcher = Pattern.compile("^get_core_value>(["+valid_id+"]+)$").matcher(command)).matches()) {
+    else if((matcher = Pattern.compile("^get_core_value>("+valid_id+")$").matcher(command)).matches()) {
       if(core.has(matcher.group(1))) { forks.get(pipeid).writeLine(core.get(matcher.group(1))); }
       else { forks.get(pipeid).writeLine(""); }
     }
-    else if((matcher = Pattern.compile("^get_config_value>(["+valid_id+"]+)$").matcher(command)).matches()) {
+    else if((matcher = Pattern.compile("^get_config_value>("+valid_id+")$").matcher(command)).matches()) {
       if(config.has(matcher.group(1))) { forks.get(pipeid).writeLine(config.get(matcher.group(1))); }
       else { forks.get(pipeid).writeLine(""); }
     }
-    else if((matcher = Pattern.compile("^get_variable_value>(["+valid_id+"]+)$").matcher(command)).matches()) {
+    else if((matcher = Pattern.compile("^get_variable_value>("+valid_id+")$").matcher(command)).matches()) {
       if(variables.has(matcher.group(1))) { forks.get(pipeid).writeLine(variables.get(matcher.group(1))); }
       else { forks.get(pipeid).writeLine(""); }
     }
 
-    else if((matcher = Pattern.compile("^set_core_value>(["+valid_id+"]+)>(.+)$").matcher(command)).matches()) {
+    else if((matcher = Pattern.compile("^set_core_value>("+valid_id+")>(.+)$").matcher(command)).matches()) {
       core.set(matcher.group(1),matcher.group(2));
     }
-    else if((matcher = Pattern.compile("^set_config_value>(["+valid_id+"]+)>(.+)$").matcher(command)).matches()) {
+    else if((matcher = Pattern.compile("^set_config_value>("+valid_id+")>(.+)$").matcher(command)).matches()) {
       config.set(matcher.group(1),matcher.group(2));
     }
-    else if((matcher = Pattern.compile("^set_variable_value>(["+valid_id+"]+)>(.+)$").matcher(command)).matches()) {
+    else if((matcher = Pattern.compile("^set_variable_value>("+valid_id+")>(.+)$").matcher(command)).matches()) {
       variables.set(matcher.group(1),matcher.group(2));
     }
 
