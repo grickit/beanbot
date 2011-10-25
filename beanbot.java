@@ -4,14 +4,16 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Calendar;
-import java.util.Enumeration;
 import java.lang.Number;
 import java.lang.Process;
 import java.lang.Runtime;
+import java.lang.System;
+import java.util.Calendar;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
-import java.lang.System;
+import java.util.regex.Matcher;
+
 
 public class beanbot {
 //-----//-----//-----// Setup //-----//-----//-----//
@@ -26,7 +28,7 @@ public class beanbot {
   private static Hashtable<String,Childpipe> forks = new Hashtable<String,Childpipe>(); // Children processes
 
 //-----//-----//-----// Config Methods //-----//-----//-----//
-  public static void parse_arguments (String args[]) {
+  public static void parse_arguments(String args[]) {
     for(Integer i = 0; i < args.length; i++) {
       String current_arg = args[i];
       if(current_arg.equals("-v") || current_arg.equals("--verbose")) { core.set("verbose","1"); }
@@ -55,6 +57,16 @@ public class beanbot {
 	System.out.println(core.get("home_directory") + "/configurations/config.txt is the default configuration file.\n");
 	System.exit(0);
       }
+    }
+  }
+
+  public static void parse_GAPIL(String command) throws IOException {
+    String valid_id = "a-zA-Z0-9_#-";
+    Matcher matcher;
+
+    if((matcher = Pattern.compile("^send_server_message>(.+)$").matcher(command)).matches()) {
+      normal_output("OUTGOING",matcher.group(1));
+      serverConnection.writeLine(matcher.group(1));
     }
   }
 
@@ -146,7 +158,7 @@ public class beanbot {
 	  String[] incoming = forks.get(pipeid).getLines();
 	  for(Integer i = 0; i < incoming.length; i++) {
 	    if(incoming[i] != "") {
-	      System.out.println(incoming[i]);
+	      parse_GAPIL(incoming[i]);
 	    }
 	  }
 	}
