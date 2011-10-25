@@ -14,10 +14,9 @@ public class Childpipe {
 
     public void run() {
       try {
-	String incoming = childpipe.reader().readLine();
-	while(incoming != null) {
+	String incoming;
+	while((incoming = childpipe.reader().readLine()) != null) {
 	  childpipe.push(incoming);
-	  incoming = childpipe.reader().readLine();
 	}
 	childpipe.preKill();
       }
