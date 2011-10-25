@@ -27,6 +27,8 @@ public class IRCConnection {
 
   public boolean alive() { return !(connection.isClosed()); }
 
+  public Socket connection() { return connection; }
+
   public InputStream output() { return output; }
 
   public OutputStream input() { return input; }

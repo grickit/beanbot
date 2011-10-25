@@ -60,7 +60,7 @@ public class beanbot {
     }
   }
 
-  public static void parse_GAPIL(String command, String pipeid) throws IOException {
+  public static void parse_GAPIL(String command, String pipeid) throws IOException, InterruptedException {
     String valid_id = "[a-zA-Z0-9_#-]+";
     Matcher matcher;
 
@@ -94,6 +94,38 @@ public class beanbot {
     }
     else if((matcher = Pattern.compile("^set_variable_value>("+valid_id+")>(.+)$").matcher(command)).matches()) {
       variables.set(matcher.group(1),matcher.group(2));
+    }
+
+    else if((matcher = Pattern.compile("^check_pipe_exists>("+valid_id+")$").matcher(command)).matches()) {
+      if(forks.containsKey(matcher.group(1))) { forks.get(pipeid).writeLine("1"); }
+      else { forks.get(pipeid).writeLine(""); }
+    }
+    else if((matcher = Pattern.compile("^kill_pipe>("+valid_id+")$").matcher(command)).matches()) {
+      if(forks.containsKey(matcher.group(1))) { forks.get(pipeid).kill(); forks.remove(pipeid); }
+      else { error_output("Tried to kill a pipe named "+matcher.group(1)+", but it doesn't exist."); }
+    }
+    else if((matcher = Pattern.compile("^run_command>("+valid_id+")>(.+)$").matcher(command)).matches()) {
+      if(forks.containsKey(matcher.group(1))) { error_output("Tried to start a pipe named "+matcher.group(1)+", but one already exists."); }
+      else {
+	forks.put(matcher.group(1),new Childpipe(matcher.group(2)));
+	forks.get(matcher.group(1)).writeLine(matcher.group(1));
+      }
+    }
+
+    else if((matcher = Pattern.compile("^sleep>([0-9]+)$").matcher(command)).matches()) {
+      Thread.sleep(Integer.parseInt(matcher.group(1)));
+    }
+    else if((matcher = Pattern.compile("^exit>$").matcher(command)).matches()) {
+      event_output("API call asked for shutdown.");
+      System.exit(0);
+    }
+    else if((matcher = Pattern.compile("^reconnect>$").matcher(command)).matches()) {
+      event_output("API call asked for reconnection.");
+      serverConnection.connection().close();
+      create_connection("chat.freenode.net",6667);
+    }
+    else if((matcher = Pattern.compile("^log>("+valid_id+")>(.+)$").matcher(command)).matches()) {
+      normal_output(matcher.group(1),matcher.group(2));
     }
 
     else { error_output("Received unknown API call: "+command); }
@@ -175,7 +207,7 @@ public class beanbot {
       }
       else {
 	error_output("IRC connection died.");
-	if(core.get("staydead") != "1") { create_connection("chat.freenode.net",6667); }
+	if(core.get("staydead") != "1") { serverConnection.connection().close(); create_connection("chat.freenode.net",6667); }
       }
 
       //-----//-----// Read from children //-----//-----//
@@ -187,7 +219,6 @@ public class beanbot {
 	  String[] incoming = forks.get(pipeid).getLines();
 	  for(Integer i = 0; i < incoming.length; i++) {
 	    if(incoming[i] != "") {
-	      debug_output("Received API call: "+incoming[i]);
 	      parse_GAPIL(incoming[i],pipeid);
 	    }
 	  }
