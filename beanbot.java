@@ -1,4 +1,6 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -137,33 +139,42 @@ public class beanbot {
     return "" + calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE)  + ":" + calendar.get(Calendar.SECOND);
   }
 
-  public static void log_output(String prefix, String message) { // Logs a message to a file
-    // TODO print logs
+  public static String generate_datestamp() { // Returns a datestamp string
+    Calendar calendar = Calendar.getInstance();
+    return "" + calendar.get(Calendar.YEAR) + "-" + calendar.get(Calendar.MONTH) + "-" + calendar.get(Calendar.DATE);
   }
 
-  public static void stdout_output(String prefix, String message) { // Logs a message to STDOUT
+  public static void log_output(String prefix, String message) throws IOException { // Logs a message to a file
+    FileWriter logfile = new FileWriter(generate_datestamp() + ".txt",true);
+    BufferedWriter output = new BufferedWriter(logfile);
+    output.write(prefix + " " + generate_timestamp() + " " + message);
+    output.newLine();
+    output.close();
+  }
+
+  public static void stdout_output(String prefix, String message) throws IOException { // Logs a message to STDOUT
     System.out.println(prefix + " " + generate_timestamp() + " " + message);
   }
 
 
-  public static void error_output(String message) { // For errors. Always logged. Always output.
+  public static void error_output(String message) throws IOException { // For errors. Always logged. Always output.
     log_output("BOTERROR",message);
     stdout_output("BOTERROR",message);
   }
 
-  public static void event_output(String message) { // For important events. Always logged. Always output.
+  public static void event_output(String message) throws IOException { // For important events. Always logged. Always output.
     log_output("BOTEVENT",message);
     stdout_output("BOTEVENT",message);
   }
 
-  public static void normal_output(String prefix, String message) { // For general logging. Always logged. Output if verbose.
+  public static void normal_output(String prefix, String message) throws IOException { // For general logging. Always logged. Output if verbose.
     log_output(prefix,message);
     if(core.get("verbose") == "1") {
       stdout_output(prefix,message);
     }
   }
 
-  public static void debug_output(String message) { // For deep debug logging. Logged if debug. Output if debug and verbose.
+  public static void debug_output(String message) throws IOException { // For deep debug logging. Logged if debug. Output if debug and verbose.
     if(core.get("debug") == "1") {
       log_output("BOTDEBUG",message);
       if(core.get("verbose") == "1") {
