@@ -84,6 +84,7 @@ public class beanbot {
     if((matcher = Pattern.compile("^send_server_message>(.+)$").matcher(command)).matches()) {
       normal_output("OUTGOING",matcher.group(1));
       serverConnection.writeLine(matcher.group(1));
+      if((matcher = Pattern.compile("^NICK (.+)$").matcher(matcher.group(1))).matches()) { core.set("nick",matcher.group(1)); }
     }
     else if((matcher = Pattern.compile("^send_pipe_message>("+valid_id+")>(.+)$").matcher(command)).matches()) {
       if(forks.containsKey(matcher.group(1))) { forks.get(matcher.group(1)).writeLine(matcher.group(2)); }
