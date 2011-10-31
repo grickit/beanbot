@@ -202,7 +202,7 @@ public class beanbot {
 //-----//-----//-----// Connection Methods //-----//-----//-----//
   public static void create_connection(String server, Integer port) throws IOException, InterruptedException {
     event_output("Attempting to connect.");
-    serverConnection = new IRCConnection("chat.freenode.net",6667);
+    serverConnection = new IRCConnection(server,port);
     event_output("Attempting to login.");
     serverConnection.login(core.get("nick"),core.get("nick"));
     core.set("message_count","0");
