@@ -1,5 +1,7 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -58,6 +60,19 @@ public class beanbot {
 	System.out.println("Ordinarily Gambot will not print much output to the terminal, but will log everything to files.");
 	System.out.println(core.get("home_directory") + "/configurations/config.txt is the default configuration file.\n");
 	System.exit(0);
+      }
+    }
+  }
+
+  public static void parse_config(String filename) throws IOException {
+    FileInputStream config_file = new FileInputStream(filename);
+    DataInputStream input = new DataInputStream(config_file);
+    BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+    String line;
+    Matcher matcher;
+    while((line = reader.readLine()) != null) {
+      if((matcher = Pattern.compile("^\\s+([a-zA-Z0-9_-]+) = \"(.+)\"$").matcher(line)).matches()) {
+	config.set(matcher.group(1),matcher.group(2));
       }
     }
   }
@@ -188,7 +203,7 @@ public class beanbot {
     event_output("Attempting to connect.");
     serverConnection = new IRCConnection("chat.freenode.net",6667);
     event_output("Attempting to login.");
-    serverConnection.login("Gambeanbot","Gambeanbot");
+    serverConnection.login(core.get("nick"),core.get("nick"));
     core.set("message_count","0");
   }
 
@@ -198,7 +213,9 @@ public class beanbot {
     core.set("configuration_file","config.txt");
     config.set("delay","100");
     parse_arguments(args);
-    create_connection("chat.freenode.net",6667);
+    parse_config(core.get("configuration_file"));
+    core.set("nick",config.get("base_nick"));
+    create_connection(config.get("server"),config.getAsInt("port"));
 
     while(true) {
       Thread.sleep(config.getAsInt("delay"));
@@ -208,9 +225,9 @@ public class beanbot {
 	while(incoming != null) {
 	  normal_output("INCOMING",incoming);
 	  String pipeid = "fork" + core.get("message_count");
-	  forks.put(pipeid,new Childpipe("perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl"));
+	  forks.put(pipeid,new Childpipe(config.get("processor")));
 	  forks.get(pipeid).writeLine(pipeid);
-	  forks.get(pipeid).writeLine("Gambeanbot");
+	  forks.get(pipeid).writeLine(core.get("nick"));
 	  forks.get(pipeid).writeLine(incoming);
 	  core.increment("message_count");
 	  incoming = serverConnection.readLine();
