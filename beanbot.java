@@ -161,7 +161,7 @@ public class beanbot {
   }
 
   public static void log_output(String prefix, String message) throws IOException { // Logs a message to a file
-    FileWriter logfile = new FileWriter(generate_datestamp() + ".txt",true);
+    FileWriter logfile = new FileWriter("logs/" + generate_datestamp() + ".txt",true);
     BufferedWriter output = new BufferedWriter(logfile);
     output.write(prefix + " " + generate_timestamp() + " " + message);
     output.newLine();
