@@ -10,9 +10,11 @@ public class MessageParser {
   private static BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
   public static void main(String[] args) throws IOException, InterruptedException {
-    String pipe_id = stdin.readLine();
-    String bot_name = stdin.readLine();
-    String incoming_message = stdin.readLine();
+    String pipe_id = stdin.readLine().trim();
+    String bot_name = stdin.readLine().trim();
+    String incoming_message = stdin.readLine().trim();
+
+    if(pipe_id.equals("fork20")) System.out.println("send_server_message>JOIN ##Gambot");
 
     String valid_nick_characters = "A-Za-z0-9[\\]\\`_^{}|-";
     String valid_chan_characters = "#"+valid_nick_characters;
