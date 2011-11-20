@@ -1,4 +1,4 @@
   server = "chat.freenode.net"
   port = "6667"
   base_nick = "abeanbot"
-  processor = "perl /home/derek/source/gambot/parsers/plugin_parser/jane.pl"
+  processor = "java MessageParser"

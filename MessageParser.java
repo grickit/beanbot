@@ -22,13 +22,49 @@ public class MessageParser {
 
     Matcher matcher;
 
-    String sender, account, hostname, command, target, message;
-
     if((matcher = Pattern.compile("^PING(.*)$").matcher(incoming_message)).matches()) {
-      System.out.println("send_server_message>PONG"+matcher.group(1));
-      sender = account = hostname = command = target = message = "";
-      //server_ping event
+      on_ping(matcher.group(1),"","","","","");
     }
+
+  }
+
+  public static void on_ping(String sender, String account, String hostname, String command, String target, String message) {
+    System.out.println("send_server_message>PONG"+sender);
+  }
+  public static void on_private_message(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_public_message(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_private_notice(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_public_notice(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_join(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_part(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_quit(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_mode(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_nick(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_kick(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_server_message(String sender, String account, String hostname, String command, String target, String message) {
+
+  }
+  public static void on_error(String sender, String account, String hostname, String command, String target, String message) {
 
   }
 }
