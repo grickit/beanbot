@@ -36,6 +36,10 @@ public class MessageParser {
       if(matcher.group(5).equals(bot_name)) { on_private_notice(matcher.group(1),matcher.group(2),matcher.group(3),matcher.group(4),matcher.group(5),matcher.group(6)); }
       else { on_public_notice(matcher.group(1),matcher.group(2),matcher.group(3),matcher.group(4),matcher.group(5),matcher.group(6)); }
     }
+    else {
+      System.out.println("log>APIERROR>Message did not match preparser.");
+      System.out.println("log>APIERROR>"+incoming_message);
+    }
   }
 
   public static void on_ping(String sender, String account, String hostname, String command, String target, String message) {
