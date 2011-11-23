@@ -28,11 +28,16 @@ public class MessageParser {
     if((matcher = Pattern.compile("^PING(.*)$").matcher(incoming_message)).matches()) {
       on_ping(matcher.group(1),"","","","","");
     }
-    else if((matcher = Pattern.compile("^:([.A-Za-z0-9`_^{}|-]+)!(~?[.A-Za-z0-9`_^{}|-]+)@(.+?) .+$").matcher(incoming_message)).matches()) {
+    else if((matcher = Pattern.compile("^:([.A-Za-z0-9`_^{}|-]+)!(~?[.A-Za-z0-9`_^{}|-]+)@(.+?) (.+)$").matcher(incoming_message)).matches()) {
       String sender = matcher.group(1);
       String user = matcher.group(2);
       String address = matcher.group(3);
-      System.out.println("send_server_message>PRIVMSG ##Gambot :sender: "+sender+" user: "+user+" address: "+address);
+      String the_rest = matcher.group(4);
+
+      if((matcher = Pattern.compile("^(PRIVMSG) ([#A-Za-z0-9`_^{}|-]+) :(.+)$").matcher(the_rest)).matches()) {
+	if(matcher.group(2).equals(bot_name)) { on_private_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
+	else { on_public_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
+      }
     }
   }
 
@@ -46,7 +51,7 @@ public class MessageParser {
     on_public_message(sender,account,hostname,command,sender,bot_name+": "+message);
   }
   public static void on_public_message(String sender, String account, String hostname, String command, String target, String message) {
-    System.out.println("send_server_message>PRIVMSG "+target+" :"+message);
+    System.out.println("send_server_message>PRIVMSG ##Gambot :"+sender+" sent me: "+message+" in "+target);
   }
   public static void on_private_notice(String sender, String account, String hostname, String command, String target, String message) {
     //Handle private notices just like private messages
