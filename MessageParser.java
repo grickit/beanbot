@@ -38,6 +38,10 @@ public class MessageParser {
 	if(matcher.group(2).equals(bot_name)) { on_private_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
 	else { on_public_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
       }
+      if((matcher = Pattern.compile("^(NOTICE) ([#A-Za-z0-9`_^{}|-]+) :(.+)$").matcher(the_rest)).matches()) {
+	if(matcher.group(2).equals(bot_name)) { on_notice_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
+	else { on_notice_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
+      }
     }
   }
 
