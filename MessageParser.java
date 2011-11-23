@@ -28,17 +28,11 @@ public class MessageParser {
     if((matcher = Pattern.compile("^PING(.*)$").matcher(incoming_message)).matches()) {
       on_ping(matcher.group(1),"","","","","");
     }
-    else if((matcher = Pattern.compile("^:([.A-Za-z0-9[\\\\]`_^{}|-]+)!~?([.A-Za-z0-9[\\\\]`_^{}|-]+)@(.+?) (PRIVMSG) ([#A-Za-z0-9[\\\\]`_^{}|-]+) :(.+)$").matcher(incoming_message)).matches()) {
-      if(matcher.group(5).equals(bot_name)) { on_private_message(matcher.group(1),matcher.group(2),matcher.group(3),matcher.group(4),matcher.group(5),matcher.group(6)); }
-      else { on_public_message(matcher.group(1),matcher.group(2),matcher.group(3),matcher.group(4),matcher.group(5),matcher.group(6)); }
-    }
-    else if((matcher = Pattern.compile("^:([.A-Za-z0-9[\\\\]`_^{}|-]+)!~?([.A-Za-z0-9[\\\\]`_^{}|-]+)@(.+?) (NOTICE) ([#A-Za-z0-9[\\\\]`_^{}|-]+) :(.+)$").matcher(incoming_message)).matches()) {
-      if(matcher.group(5).equals(bot_name)) { on_private_notice(matcher.group(1),matcher.group(2),matcher.group(3),matcher.group(4),matcher.group(5),matcher.group(6)); }
-      else { on_public_notice(matcher.group(1),matcher.group(2),matcher.group(3),matcher.group(4),matcher.group(5),matcher.group(6)); }
-    }
-    else {
-      System.out.println("log>APIERROR>Message did not match preparser.");
-      System.out.println("log>APIERROR>"+incoming_message);
+    else if((matcher = Pattern.compile("^:([.A-Za-z0-9`_^{}|-]+)!(~?[.A-Za-z0-9`_^{}|-]+)@(.+?) .+$").matcher(incoming_message)).matches()) {
+      String sender = matcher.group(1);
+      String user = matcher.group(2);
+      String address = matcher.group(3);
+      System.out.println("send_server_message>PRIVMSG ##Gambot :sender: "+sender+" user: "+user+" address: "+address);
     }
   }
 
@@ -61,7 +55,7 @@ public class MessageParser {
   public static void on_public_notice(String sender, String account, String hostname, String command, String target, String message) {
 
   }
-  public static void on_join(String sender, String account, String hostname, String command, String target, String message) {
+  public static void on_join(String sender, String account, String hostname, String command, String target) {
 
   }
   public static void on_part(String sender, String account, String hostname, String command, String target, String message) {
