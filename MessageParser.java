@@ -43,7 +43,13 @@ public class MessageParser {
 	else { on_notice_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
       }
       if((matcher = Pattern.compile("^(JOIN) :([#A-Za-z0-9`_^{}|-]+)$").matcher(the_rest)).matches()) {
+	on_join(sender,user,address,matcher.group(1),matcher.group(2));
+      }
+      if((matcher = Pattern.compile("^(PART) ([#A-Za-z0-9`_^{}|-]+) ?:?(.+)?$").matcher(the_rest)).matches()) {
 	on_join(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3));
+      }
+      if((matcher = Pattern.compile("^(QUIT) ?:?(.+)?$").matcher(the_rest)).matches()) {
+	on_join(sender,user,address,matcher.group(1),matcher.group(2));
       }
     }
   }
@@ -73,7 +79,7 @@ public class MessageParser {
   public static void on_part(String sender, String account, String hostname, String command, String target, String message) {
 
   }
-  public static void on_quit(String sender, String account, String hostname, String command, String target, String message) {
+  public static void on_quit(String sender, String account, String hostname, String command, String message) {
 
   }
   public static void on_mode(String sender, String account, String hostname, String command, String target, String message) {
