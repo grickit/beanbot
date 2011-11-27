@@ -51,9 +51,6 @@ public class MessageParser {
       if((matcher = Pattern.compile("^(QUIT) ?:?(.+)?$").matcher(the_rest)).matches()) {
 	on_quit(sender,user,address,matcher.group(1),matcher.group(2));
       }
-      if((matcher = Pattern.compile("^(MODE) ([#A-Za-z0-9`_^{}|-]+) ([a-zA-Z+-]+) ([#A-Za-z0-9`_^{}|-]+)$").matcher(the_rest)).matches()) {
-	on_mode(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3));
-      }
     }
   }
 
@@ -67,34 +64,28 @@ public class MessageParser {
     on_public_message(sender,account,hostname,command,sender,bot_name+": "+message);
   }
   public static void on_public_message(String sender, String account, String hostname, String command, String target, String message) {
-    System.out.println("send_server_message>PRIVMSG ##Gambot :"+sender+" sent me: "+message+" in "+target);
+    System.out.println("send_server_message>PRIVMSG ##Gambot :"+sender+" sent: "+message+" in "+target);
   }
   public static void on_private_notice(String sender, String account, String hostname, String command, String target, String message) {
     //Handle private notices just like private messages
     on_public_notice(sender,account,hostname,command,sender,bot_name+": "+message);
   }
   public static void on_public_notice(String sender, String account, String hostname, String command, String target, String message) {
-
+    System.out.println("send_server_message>PRIVMSG ##Gambot :"+sender+" noticed: "+message+" in "+target);
   }
   public static void on_join(String sender, String account, String hostname, String command, String target) {
-
+    System.out.println("send_server_message>PRIVMSG ##Gambot :"+sender+" joined: "+target);
   }
   public static void on_part(String sender, String account, String hostname, String command, String target, String message) {
-
+    System.out.println("send_server_message>PRIVMSG ##Gambot :"+sender+" parted: "+target+" with message: "+message);
   }
   public static void on_quit(String sender, String account, String hostname, String command, String message) {
-
-  }
-  public static void on_mode(String sender, String account, String hostname, String command, String target, String message) {
-
+    System.out.println("send_server_message>PRIVMSG ##Gambot :"+sender+" quit with message: "+message);
   }
   public static void on_nick(String sender, String account, String hostname, String command, String target, String message) {
 
   }
   public static void on_kick(String sender, String account, String hostname, String command, String target, String message) {
-
-  }
-  public static void on_server_message(String sender, String account, String hostname, String command, String target, String message) {
 
   }
   public static void on_error(String sender, String account, String hostname, String command, String target, String message) {
