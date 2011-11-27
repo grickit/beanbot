@@ -39,17 +39,20 @@ public class MessageParser {
 	else { on_public_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
       }
       if((matcher = Pattern.compile("^(NOTICE) ([#A-Za-z0-9`_^{}|-]+) :(.+)$").matcher(the_rest)).matches()) {
-	if(matcher.group(2).equals(bot_name)) { on_notice_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
-	else { on_notice_message(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
+	if(matcher.group(2).equals(bot_name)) { on_private_notice(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
+	else { on_public_notice(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3)); }
       }
       if((matcher = Pattern.compile("^(JOIN) :([#A-Za-z0-9`_^{}|-]+)$").matcher(the_rest)).matches()) {
 	on_join(sender,user,address,matcher.group(1),matcher.group(2));
       }
       if((matcher = Pattern.compile("^(PART) ([#A-Za-z0-9`_^{}|-]+) ?:?(.+)?$").matcher(the_rest)).matches()) {
-	on_join(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3));
+	on_part(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3));
       }
       if((matcher = Pattern.compile("^(QUIT) ?:?(.+)?$").matcher(the_rest)).matches()) {
-	on_join(sender,user,address,matcher.group(1),matcher.group(2));
+	on_quit(sender,user,address,matcher.group(1),matcher.group(2));
+      }
+      if((matcher = Pattern.compile("^(MODE) ([#A-Za-z0-9`_^{}|-]+) ([a-zA-Z+-]+) ([#A-Za-z0-9`_^{}|-]+)$").matcher(the_rest)).matches()) {
+	on_mode(sender,user,address,matcher.group(1),matcher.group(2),matcher.group(3));
       }
     }
   }
