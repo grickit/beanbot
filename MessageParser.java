@@ -5,12 +5,13 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.lang.InterruptedException;
 
 public class MessageParser {
   private static BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-    private static String pipe_id = "";
-    private static String bot_name = "";
-    private static String incoming_message = "";
+  private static String pipe_id = "";
+  private static String bot_name = "";
+  private static String incoming_message = "";
 
   public static void main(String[] args) throws IOException, InterruptedException {
     pipe_id = stdin.readLine().trim();
@@ -64,7 +65,14 @@ public class MessageParser {
     on_public_message(sender,account,hostname,command,sender,bot_name+": "+message);
   }
   public static void on_public_message(String sender, String account, String hostname, String command, String target, String message) {
-    System.out.println("send_server_message>PRIVMSG ##Gambot :"+sender+" sent: "+message+" in "+target);
+    Matcher matcher;
+    if((matcher = Pattern.compile("^"+bot_name+": sleep ([0-9]+)$").matcher(message)).matches()) {
+      try {
+	Thread.sleep(Integer.parseInt(matcher.group(1))*1000);
+      }
+      catch (InterruptedException e) { }
+      System.out.println("send_server_message>PRIVMSG "+target+" :Done sleeping for "+matcher.group(1)+" seconds.");
+    }
   }
   public static void on_private_notice(String sender, String account, String hostname, String command, String target, String message) {
     //Handle private notices just like private messages
